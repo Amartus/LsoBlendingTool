@@ -1,0 +1,4 @@
+generatorName: java
+outputDir: out/java
+additionalProperties:
+  java8: "true"
