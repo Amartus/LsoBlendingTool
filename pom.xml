@@ -6,7 +6,7 @@
 
     <groupId>com.amartus.sonata</groupId>
     <artifactId>blender</artifactId>
-    <description>SonataBleningTool</description>
+    <description>SonataBlendingTool</description>
     <version>1.0</version>
     <dependencies>
         <!-- https://mvnrepository.com/artifact/org.openapitools/openapi-generator -->
