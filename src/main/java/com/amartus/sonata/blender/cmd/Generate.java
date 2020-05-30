@@ -19,6 +19,7 @@ import io.airlift.airline.Command;
 import io.airlift.airline.Option;
 import io.swagger.v3.oas.models.media.Discriminator;
 import io.swagger.v3.oas.models.media.Schema;
+import io.swagger.v3.oas.models.media.StringSchema;
 import io.swagger.v3.parser.core.models.ParseOptions;
 import org.apache.commons.lang3.StringUtils;
 import org.openapitools.codegen.ClientOptInput;
@@ -63,7 +64,7 @@ public class Generate implements Runnable {
             description = "location of the OpenAPI spec, as URL or file (required)")
     private String spec;
 
-    @Option(name = {"-m", "-model-name"},
+    @Option(name = {"-m", "--model-name"},
             title = "model to be augmented",
             description = "Model which will be hosting product specific extensions (E.g. ProductCharacteristics)"
     )
@@ -74,6 +75,12 @@ public class Generate implements Runnable {
             description = "encoding used to read API and product definitions. By default system encoding is used"
     )
     private String encoding = null;
+    @Option(name= {"--strict-mode"},
+            title = "Verify that model to be augmented allows for extension"
+    )
+    private boolean strict = false;
+
+    private static final String DISCRIMINATOR_NAME = "@type";
 
     @Override
     public void run() {
@@ -99,6 +106,7 @@ public class Generate implements Runnable {
             log.error("Error in wrapper configuration", e);
             System.exit(1);
         } catch(IllegalStateException e) {
+            log.error("Error in wrapper configuration", e);
             System.exit(2);
         }
     }
@@ -152,24 +160,48 @@ public class Generate implements Runnable {
         public List<File> generate() {
             log.debug("Injecting {} schemas from {} product spec descriptions",
                     schemasToInject.size(), productSpecifications.size());
+
             if(! schemasToInject.isEmpty()) {
-                validateSchemaToExtend();
+                validateTargetExists();
+                if(! isTargetReadyForExtension()) {
+                    if(strict) {
+                        log.error("No discriminator defined for {} ", modelToAugment);
+                        throw new IllegalStateException("Discriminator not found");
+                    } else {
+                        prepareTargetForExtension();
+                    }
+                }
             }
             this.openAPI.getComponents().getSchemas().putAll(schemasToInject);
             return super.generate();
         }
 
-        private void validateSchemaToExtend() {
-            Schema schema = this.openAPI.getComponents().getSchemas().get(modelToAugment);
+        private void validateTargetExists() {
+            Schema<?> schema = this.openAPI.getComponents().getSchemas().get(modelToAugment);
             if(schema == null) {
-                log.error("Schema with name {} is not present in the API spec {}", modelToAugment, spec);
-                throw new IllegalStateException("Schema not found");
+                log.error("Schema with name '{}' is not present in the API spec {}", modelToAugment, spec);
+                throw new IllegalStateException(String.format("Schema '%s' not found in the specification", modelToAugment));
             }
+        }
+
+        private void prepareTargetForExtension() {
+            Schema<?> schema = this.openAPI.getComponents().getSchemas().get(modelToAugment);
+
+            boolean hasTypeDefined = schema.getProperties().containsKey(DISCRIMINATOR_NAME);
+            if(!hasTypeDefined) {
+                log.info("Adding field {} to the {}", DISCRIMINATOR_NAME, modelToAugment);
+                schema.addProperties(DISCRIMINATOR_NAME,
+                        new StringSchema().description("Used as a discriminator to support polymorphic definitions"));
+            }
+            log.info("Adding discriminator to the {}", modelToAugment);
+            schema.setDiscriminator(new Discriminator().propertyName(DISCRIMINATOR_NAME));
+
+        }
+
+        private boolean isTargetReadyForExtension() {
+            Schema schema = this.openAPI.getComponents().getSchemas().get(modelToAugment);
             Discriminator discriminator = schema.getDiscriminator();
-            if(discriminator == null) {
-                log.error("No discriminator defined for {} ", modelToAugment);
-                throw new IllegalStateException("Discriminator not found");
-            }
+            return discriminator != null;
         }
     }
 }
