@@ -66,9 +66,9 @@ public class Generate implements Runnable {
 
     @Option(name = {"-m", "--model-name"},
             title = "model to be augmented",
-            description = "Model which will be hosting product specific extensions (E.g. ProductCharacteristics)"
+            description = "Model which will be hosting product specific extensions (e.g. Product)"
     )
-    private String modelToAugment = "ProductCharacteristics";
+    private String modelToAugment = "Product";
 
     @Option(name = {"-e", "-encoding"},
             title = "files encoding",
