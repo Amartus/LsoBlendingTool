@@ -76,7 +76,9 @@ public class Generate implements Runnable {
     )
     private String encoding = null;
     @Option(name= {"--strict-mode"},
-            title = "Verify that model to be augmented allows for extension"
+            title = "strict mode flag",
+            description = "Verify that model to be augmented allows for extension (contains discriminator definition)." +
+                    "\n If strict-mode is `false` tool will add a discriminator on the fly if possible."
     )
     private boolean strict = false;
 
