@@ -147,7 +147,10 @@ public class Generate implements Runnable {
         opt.setResolve(true);
         return productSpecifications.stream()
                 .flatMap(file -> new ProductSpecReader(modelToAugment, file).readSchemas().entrySet().stream())
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a,b) -> {
+                    if(a.equals(b)) return a;
+                    throw new IllegalArgumentException(String.format("Object for the same key does not match %s %s", a, b));
+                }));
 
     }
 
