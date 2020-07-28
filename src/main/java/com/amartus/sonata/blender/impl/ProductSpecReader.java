@@ -1,5 +1,4 @@
-/*
- * Copyright 2020 Amartus
+/* * Copyright 2020 Amartus
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,28 +12,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.amartus.sonata.blender.cmd;
+package com.amartus.sonata.blender.impl;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.media.ComposedSchema;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.parser.OpenAPIResolver;
 
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 
-class ProductSpecReader {
+public class ProductSpecReader {
     private final String name;
+
+    private final ObjectMapper mapper = new ObjectMapper();
 
     private static final String KEY = "___to_remove";
     private final String modelToAugment;
 
-    ProductSpecReader(String modelToAugment, String name) {
+    public ProductSpecReader(String modelToAugment, String name) {
         this.name = name;
         this.modelToAugment = modelToAugment;
     }
 
-    Map<String, Schema> readSchemas() {
+    public Map<String, Schema> readSchemas() {
         OpenAPI api = new OpenAPI();
 
         ComposedSchema schema = new ComposedSchema()
@@ -42,26 +47,40 @@ class ProductSpecReader {
                 .addAllOfItem(new Schema().$ref(name));
         api.schema(KEY, schema);
 
+        String productName = getId(name).orElse(toProductName(name));
         Map<String, Schema> resolved = resolve(schema);
-
         ComposedSchema wrapper = (ComposedSchema) resolved.remove(KEY);
-
         Schema productCharacteristicsRef = wrapper.getAllOf().get(0);
-        String productName = toName(wrapper.getAllOf().get(1));
-
-        Schema product = resolved.get(productName);
+        Schema specification = resolved.remove(toRefName(wrapper.getAllOf().get(1)));
 
         resolved.put(productName, new ComposedSchema()
                 .addAllOfItem(productCharacteristicsRef)
-                .addAllOfItem(product)
+                .addAllOfItem(specification)
         );
 
         return resolved;
     }
 
-    private String toName(Schema schema) {
-        String ref = schema.get$ref();
-        return ref.substring(ref.lastIndexOf("/") + 1);
+    private Optional<String> getId(String name) {
+        try {
+            JsonNode tree = mapper.readTree(Paths.get(name).toFile());
+            return Optional.ofNullable(tree.get("$id").textValue());
+        } catch (Exception e) {
+            return Optional.empty();
+        }
+    }
+
+    private String toRefName(Schema schema) {
+        return schema.get$ref().replace("#/components/schemas/", "");
+    }
+
+    private String toProductName(String name) {
+        int sepIdx = name.lastIndexOf("/");
+        if (sepIdx < 0) {
+            sepIdx = name.lastIndexOf("\\");
+        }
+
+        return name.substring(sepIdx + 1);
     }
 
     private Map<String, Schema> resolve(ComposedSchema schema) {

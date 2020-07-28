@@ -15,12 +15,14 @@
  */
 package com.amartus.sonata.blender.cmd;
 
+import com.amartus.sonata.blender.impl.MergeSchemasAction;
+import com.amartus.sonata.blender.impl.postprocess.AlignTypeCompositionWithOasTools;
+import com.amartus.sonata.blender.impl.postprocess.PropertyCompositionToType;
+import com.amartus.sonata.blender.impl.postprocess.PropertyEnumExternalize;
+import com.amartus.sonata.blender.impl.postprocess.RemoveSuperflousTypeDeclarations;
 import io.airlift.airline.Command;
 import io.airlift.airline.Option;
-import io.swagger.v3.oas.models.media.Discriminator;
 import io.swagger.v3.oas.models.media.Schema;
-import io.swagger.v3.oas.models.media.StringSchema;
-import io.swagger.v3.parser.core.models.ParseOptions;
 import org.apache.commons.lang3.StringUtils;
 import org.openapitools.codegen.ClientOptInput;
 import org.openapitools.codegen.DefaultGenerator;
@@ -30,19 +32,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * @author bartosz.michalik@amartus.com
  */
 @Command(name = "generate", description = "Generate code using configuration.")
-public class Generate implements Runnable {
+public class Generate extends AbstractCmd implements Runnable {
     private static final Logger log = LoggerFactory.getLogger(Generate.class);
     @Option(
             name = {"-c", "--config"},
@@ -54,35 +51,6 @@ public class Generate implements Runnable {
                     + "Supported options can be different for each language. Run config-help -g {generator name} command for language specific config options.")
     private String configFile;
 
-    @Option(
-            name = {"-p", "--product-spec"},
-            title = "product specifications",
-            description = "sets of product specification you would like to integrate")
-    private List<String> productSpecifications = new ArrayList<>();
-
-    @Option(name = {"-i", "--input-spec"}, title = "spec file", required = true,
-            description = "location of the OpenAPI spec, as URL or file (required)")
-    private String spec;
-
-    @Option(name = {"-m", "--model-name"},
-            title = "model to be augmented",
-            description = "Model which will be hosting product specific extensions (e.g. Product)"
-    )
-    private String modelToAugment = "Product";
-
-    @Option(name = {"-e", "-encoding"},
-            title = "files encoding",
-            description = "encoding used to read API and product definitions. By default system encoding is used"
-    )
-    private String encoding = null;
-    @Option(name= {"--strict-mode"},
-            title = "strict mode flag",
-            description = "Verify that model to be augmented allows for extension (contains discriminator definition)." +
-                    "\n If strict-mode is `false` tool will add a discriminator on the fly if possible."
-    )
-    private boolean strict = false;
-
-    private static final String DISCRIMINATOR_NAME = "@type";
 
     @Override
     public void run() {
@@ -113,47 +81,6 @@ public class Generate implements Runnable {
         }
     }
 
-    private void validateProductSpecs(List<String> productSpecifications) {
-        Optional<String> absolute = productSpecifications.stream()
-                .filter(this::isAbsolute)
-                .findFirst();
-        absolute.ifPresent(p -> {
-            String current = Paths.get("").toAbsolutePath().toString();
-
-            log.warn("{} is an absolute current. it should be relative wrt. {}", p, current);
-            throw new IllegalArgumentException("All product specifications has to be expressed as relative paths.");
-        });
-
-        boolean incorrectFilesExists = productSpecifications.stream()
-                .filter(this::notAfile)
-                .peek(p -> log.warn("{} is not a file", p))
-                .count() > 0;
-        if(incorrectFilesExists) {
-            throw new IllegalArgumentException("All product specifications has to exist");
-        }
-    }
-
-    private boolean notAfile(String p) {
-        return ! Files.isRegularFile(Paths.get(p));
-    }
-
-    private boolean isAbsolute(String p) {
-        return Paths.get(p).isAbsolute();
-    }
-
-    private Map<String, Schema> toProductSpecifications() {
-
-        ParseOptions opt = new ParseOptions();
-        opt.setResolve(true);
-        return productSpecifications.stream()
-                .flatMap(file -> new ProductSpecReader(modelToAugment, file).readSchemas().entrySet().stream())
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a,b) -> {
-                    if(a.equals(b)) return a;
-                    throw new IllegalArgumentException(String.format("Object for the same key does not match %s %s", a, b));
-                }));
-
-    }
-
     private class AmartusGenerator extends DefaultGenerator {
         private final Map<String, Schema> schemasToInject;
 
@@ -166,47 +93,20 @@ public class Generate implements Runnable {
             log.debug("Injecting {} schemas from {} product spec descriptions",
                     schemasToInject.size(), productSpecifications.size());
 
-            if(! schemasToInject.isEmpty()) {
-                validateTargetExists();
-                if(! isTargetReadyForExtension()) {
-                    if(strict) {
-                        log.error("No discriminator defined for {} ", modelToAugment);
-                        throw new IllegalStateException("Discriminator not found");
-                    } else {
-                        prepareTargetForExtension();
-                    }
-                }
-            }
-            this.openAPI.getComponents().getSchemas().putAll(schemasToInject);
+            new MergeSchemasAction(modelToAugment, strict)
+                    .schemasToInject(schemasToInject)
+                    .target(this.openAPI)
+                    .execute();
+
+            new RemoveSuperflousTypeDeclarations().accept(openAPI);
+            new PropertyCompositionToType().accept(openAPI);
+            new PropertyEnumExternalize().accept(openAPI);
+
+            new AlignTypeCompositionWithOasTools().accept(openAPI);
+
             return super.generate();
         }
 
-        private void validateTargetExists() {
-            Schema<?> schema = this.openAPI.getComponents().getSchemas().get(modelToAugment);
-            if(schema == null) {
-                log.error("Schema with name '{}' is not present in the API spec {}", modelToAugment, spec);
-                throw new IllegalStateException(String.format("Schema '%s' not found in the specification", modelToAugment));
-            }
-        }
 
-        private void prepareTargetForExtension() {
-            Schema<?> schema = this.openAPI.getComponents().getSchemas().get(modelToAugment);
-
-            boolean hasTypeDefined = schema.getProperties().containsKey(DISCRIMINATOR_NAME);
-            if(!hasTypeDefined) {
-                log.info("Adding field {} to the {}", DISCRIMINATOR_NAME, modelToAugment);
-                schema.addProperties(DISCRIMINATOR_NAME,
-                        new StringSchema().description("Used as a discriminator to support polymorphic definitions"));
-            }
-            log.info("Adding discriminator to the {}", modelToAugment);
-            schema.setDiscriminator(new Discriminator().propertyName(DISCRIMINATOR_NAME));
-
-        }
-
-        private boolean isTargetReadyForExtension() {
-            Schema schema = this.openAPI.getComponents().getSchemas().get(modelToAugment);
-            Discriminator discriminator = schema.getDiscriminator();
-            return discriminator != null;
-        }
     }
 }

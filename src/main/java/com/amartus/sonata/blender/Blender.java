@@ -15,8 +15,10 @@
  */
 package com.amartus.sonata.blender;
 
+import com.amartus.sonata.blender.cmd.Blend;
 import com.amartus.sonata.blender.cmd.Generate;
-import io.airlift.airline.*;
+import io.airlift.airline.Cli;
+import io.airlift.airline.Help;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +41,7 @@ public class Blender {
                         .withDefaultCommand(Help.class)
                         .withCommands(
                                 Generate.class,
+                                Blend.class,
                                 Help.class
                         );
 
