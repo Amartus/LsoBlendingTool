@@ -29,9 +29,9 @@ public abstract class AbstractCmd {
 
     @Option(name = {"-m", "--model-name"},
             title = "model to be augmented",
-            description = "Model which will be hosting product specific extensions (e.g. Product)"
+            description = "Model which will be hosting product specific extensions (e.g. MEFProductConfiguration)"
     )
-    protected String modelToAugment = "Product";
+    protected String modelToAugment = "MEFProductConfiguration";
 
     @Option(name = {"-e", "-encoding"},
             title = "files encoding",

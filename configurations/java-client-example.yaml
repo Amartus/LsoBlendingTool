@@ -1,4 +1,9 @@
 generatorName: java
 outputDir: out/java
-additionalProperties:
-  java8: "true"
+#additionalProperties:
+dateLibrary: java8
+library: native
+legacyDiscriminatorBehavior: false
+serializationLibrary: jackson
+apiTests: false
+modelTests: false

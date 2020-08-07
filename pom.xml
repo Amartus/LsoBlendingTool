@@ -7,7 +7,7 @@
     <groupId>com.amartus.sonata</groupId>
     <artifactId>blender</artifactId>
     <description>SonataBlendingTool</description>
-    <version>1.0</version>
+    <version>1.1</version>
     <dependencies>
         <!-- https://mvnrepository.com/artifact/org.openapitools/openapi-generator -->
         <dependency>
@@ -70,7 +70,7 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <minimizeJar>true</minimizeJar>
+                            <minimizeJar>false</minimizeJar>
                             <createDependencyReducedPom>true</createDependencyReducedPom>
                             <dependencyReducedPomLocation>
                                 ${java.io.tmpdir}/dependency-reduced-pom.xml
