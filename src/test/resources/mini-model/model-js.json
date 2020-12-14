@@ -1,0 +1,77 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "http://some-url.com/model-js",
+  "properties": {
+    "prop1": {
+      "type": "integer",
+      "maximum": 1000,
+      "description": "Property1 description"
+    },
+    "aggregate": {
+      "allOf": [
+        {
+          "$ref": "./common-js.json#/definitions/ElementA"
+        },
+        {
+          "$ref": "./common-js.json#/definitions/ElementB"
+        }
+      ]
+    },
+    "oneOfEnum": {
+      "oneOf": [
+        {
+          "$ref": "./common-js.json#/definitions/EnumA"
+        },
+        {
+          "$ref": "./common-js.json#/definitions/EnumB"
+        }
+      ]
+    },
+    "oneOfLocalTypes": {
+      "oneOf": [
+        {
+          "$ref": "#/definitions/ElementC"
+        },
+        {
+          "$ref": "#/definitions/ElementD"
+        }
+      ],
+      "additionalProperties": false
+    },
+    "xyz": {
+      "$ref": "#/definitions/ElementC"
+    }
+  },
+  "required": [
+    "aggregate",
+    "oneOfEnum",
+    "prop1",
+    "oneOfLocalTypes"
+  ],
+  "definitions": {
+    "ElementC": {
+      "properties": {
+        "foo": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          },
+          "minItems": 3
+        },
+        "bar": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "foo"
+      ]
+    },
+    "ElementD": {
+      "properties": {
+        "baz": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

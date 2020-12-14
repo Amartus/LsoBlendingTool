@@ -1,2 +1,3 @@
 generatorName: openapi-yaml
-outputDir: out
+outputDir: out/oap
+legacyDiscriminatorBehavior: false

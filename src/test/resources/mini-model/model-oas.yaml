@@ -1,0 +1,55 @@
+---
+openapi: 3.0.0
+info:
+  title: "API"
+  version: "1.0.0"
+  contact:
+    name: Contact Name
+    email: contact@example.com
+    url: https://example.com/
+paths: { }
+components:
+  schemas:
+    ModelOAS:
+      x-mef-aaa: dsadassa
+      properties:
+        prop1:
+          type: integer
+          maximum: 1000
+          description: Property1 description
+        aggregate:
+          allOf:
+            - $ref: './common-js.yaml#/definitions/ElementA'
+            - $ref: './common-js.yaml#/definitions/ElementB'
+        oneOfEnum:
+          oneOf:
+            - $ref: './common-js.json#/definitions/EnumA'
+            - $ref: './common-js.json#/definitions/EnumB'
+        oneOfLocalTypes:
+          oneOf:
+            - $ref: '#/components/schemas/ElementC'
+            - $ref: '#/components/schemas/ElementD'
+          additionalProperties: false
+        xyz:
+          $ref: '#/components/schemas/ElementC'
+      required:
+        - aggregate
+        - oneOfEnum
+        - prop1
+        - oneOfLocalTypes
+    ElementC:
+      properties:
+        foo:
+          type: array
+          items:
+            type: integer
+          minItems: 3
+        bar:
+          type: integer
+      required:
+        - foo
+    ElementD:
+      properties:
+        baz:
+          type: string
+

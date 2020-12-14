@@ -16,5 +16,14 @@
  *
  */
 
-package com.amartus.sonata.blender.impl.util;
+package com.amartus;
 
+import java.nio.file.Path;
+
+public class Utils {
+    private static final Path TEST_RESOURCES_PATH = Path.of("src", "test", "resources");
+
+    public static Path toPath(String first, String... rest) {
+        return TEST_RESOURCES_PATH.resolve(Path.of(first, rest));
+    }
+}
