@@ -1,4 +1,5 @@
 /*
+ *
  * Copyright 2020 Amartus
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,6 +13,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 package com.amartus.sonata.blender;
 
@@ -30,7 +32,7 @@ import java.util.Locale;
 public class Blender {
     private static final Logger log = LoggerFactory.getLogger(Blender.class);
     public static void main(String[] args) {
-        String version = "1.0";
+        String version = "1.2";
         Cli.CliBuilder<Runnable> builder =
                 Cli.<Runnable>builder("sonata-blending-tool-cli")
                         .withDescription(

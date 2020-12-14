@@ -1,4 +1,5 @@
 /*
+ *
  * Copyright 2020 Amartus
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,14 +13,16 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 package com.amartus.sonata.blender.cmd;
 
 import com.amartus.sonata.blender.impl.MergeSchemasAction;
-import com.amartus.sonata.blender.impl.postprocess.AlignTypeCompositionWithOasTools;
+import com.amartus.sonata.blender.impl.postprocess.ConvertOneOfToAllOffInheritence;
 import com.amartus.sonata.blender.impl.postprocess.PropertyCompositionToType;
 import com.amartus.sonata.blender.impl.postprocess.PropertyEnumExternalize;
 import com.amartus.sonata.blender.impl.postprocess.RemoveSuperflousTypeDeclarations;
+import com.amartus.sonata.blender.impl.postprocess.UpdateDiscriminatorMapping;
 import io.airlift.airline.Command;
 import io.airlift.airline.Option;
 import io.swagger.v3.oas.models.media.Schema;
@@ -101,8 +104,10 @@ public class Generate extends AbstractCmd implements Runnable {
             new RemoveSuperflousTypeDeclarations().accept(openAPI);
             new PropertyCompositionToType().accept(openAPI);
             new PropertyEnumExternalize().accept(openAPI);
+            new ConvertOneOfToAllOffInheritence().accept(openAPI);
+            new UpdateDiscriminatorMapping().accept(openAPI);
 
-            new AlignTypeCompositionWithOasTools().accept(openAPI);
+//            new AlignTypeCompositionWithOasTools().accept(openAPI);
 
             return super.generate();
         }
