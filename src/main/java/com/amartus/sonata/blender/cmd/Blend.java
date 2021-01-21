@@ -27,7 +27,7 @@ import com.amartus.sonata.blender.impl.postprocess.SingleEnumToDiscriminatorValu
 import com.amartus.sonata.blender.impl.postprocess.UpdateDiscriminatorMapping;
 import com.amartus.sonata.blender.impl.util.SerializationUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.airlift.airline.Command;
+import com.github.rvesse.airline.annotations.Command;
 import io.swagger.parser.OpenAPIParser;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.media.Schema;
@@ -39,8 +39,11 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Command(name = "blend", description = "Blend Product Specifications into OpenAPI.")
 public class Blend extends AbstractCmd implements Runnable {
@@ -48,6 +51,10 @@ public class Blend extends AbstractCmd implements Runnable {
 
     @Override
     public void run() {
+        if (allSchemas) {
+            productSpecifications = findAllProductSpecifications();
+        }
+
         validateProductSpecs(productSpecifications);
 
         SwaggerParseResult result = new OpenAPIParser().readLocation(this.spec, List.of(), new ParseOptions());
@@ -78,6 +85,18 @@ public class Blend extends AbstractCmd implements Runnable {
             mapper.writeValue(new FileWriter(output), openAPI);
         } catch (IOException e) {
             throw new IllegalStateException("Error writing file", e);
+        }
+    }
+
+    private List<String> findAllProductSpecifications() {
+        var root = Path.of(productsRootDir);
+        try {
+            return Files.list(root)
+                    .filter(f -> !Files.isDirectory(f))
+                    .map(p -> root.relativize(p).toString())
+                    .collect(Collectors.toList());
+        } catch (IOException e) {
+            throw new IllegalArgumentException(String.format("Cannot read %s", root), e);
         }
     }
 }

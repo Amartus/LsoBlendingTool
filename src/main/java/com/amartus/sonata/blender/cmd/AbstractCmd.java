@@ -20,7 +20,9 @@ package com.amartus.sonata.blender.cmd;
 
 import com.amartus.sonata.blender.impl.ProductSpecReader;
 import com.amartus.sonata.blender.impl.util.PathUtils;
-import io.airlift.airline.Option;
+import com.github.rvesse.airline.annotations.Option;
+import com.github.rvesse.airline.annotations.restrictions.Once;
+import com.github.rvesse.airline.annotations.restrictions.RequireOnlyOne;
 import io.swagger.v3.oas.models.media.Schema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +43,7 @@ public abstract class AbstractCmd {
             name = {"-p", "--product-spec"},
             title = "product specifications",
             description = "sets of product specification you would like to integrate")
+    @RequireOnlyOne(tag = "allOrSelective")
     protected List<String> productSpecifications = new ArrayList<>();
 
     @Option(
@@ -49,8 +52,9 @@ public abstract class AbstractCmd {
             description = "sets of product specification root directory for specifications you would like to integrate")
     protected String productsRootDir = ".";
 
-    @Option(name = {"-i", "--input-spec"}, title = "spec file", required = true,
+    @Option(name = {"-i", "--input-spec"}, title = "spec file",
             description = "location of the OpenAPI spec, as URL or file (required)")
+    @Once
     protected String spec;
 
     @Option(name = {"-m", "--model-name"},
@@ -70,6 +74,15 @@ public abstract class AbstractCmd {
                     "\n If strict-mode is `false` tool will add a discriminator on the fly if possible."
     )
     protected boolean strict = false;
+
+    @Option(name = {"-all", "--all-product-schemas"},
+            title = "take all product schemas",
+            hidden = true,
+            description = "Take all schemas from product specification root directory"
+    )
+    @RequireOnlyOne(tag = "allOrSelective")
+    protected boolean allSchemas = false;
+
     private Function<String, Path> toPath = p -> Path.of(productsRootDir, PathUtils.toFileName(p));
     private Predicate<String> exists = (String p) -> {
         var path = toPath.apply(p);
@@ -79,7 +92,6 @@ public abstract class AbstractCmd {
 
     protected Map<String, Schema> toProductSpecifications() {
         var root = Path.of(productsRootDir);
-
 
         return productSpecifications.stream()
                 .flatMap(schema -> new ProductSpecReader(modelToAugment, root, schema).readSchemas().entrySet().stream())

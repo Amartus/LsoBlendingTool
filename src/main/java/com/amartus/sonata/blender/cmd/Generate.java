@@ -24,8 +24,9 @@ import com.amartus.sonata.blender.impl.postprocess.PropertyEnumExternalize;
 import com.amartus.sonata.blender.impl.postprocess.RemoveSuperflousTypeDeclarations;
 import com.amartus.sonata.blender.impl.postprocess.SingleEnumToDiscriminatorValue;
 import com.amartus.sonata.blender.impl.postprocess.UpdateDiscriminatorMapping;
-import io.airlift.airline.Command;
-import io.airlift.airline.Option;
+import com.github.rvesse.airline.annotations.Command;
+import com.github.rvesse.airline.annotations.Option;
+import com.github.rvesse.airline.annotations.restrictions.Once;
 import io.swagger.v3.oas.models.media.Schema;
 import org.apache.commons.lang3.StringUtils;
 import org.openapitools.codegen.ClientOptInput;
@@ -47,12 +48,12 @@ public class Generate extends AbstractCmd implements Runnable {
     private static final Logger log = LoggerFactory.getLogger(Generate.class);
     @Option(
             name = {"-c", "--config"},
-            required = true,
             title = "configuration file",
             description = "Path to configuration file configuration file. It can be json or yaml."
                     + "If file is json, the content should have the format {\"optionKey\":\"optionValue\", \"optionKey1\":\"optionValue1\"...}."
                     + "If file is yaml, the content should have the format optionKey: optionValue"
                     + "Supported options can be different for each language. Run config-help -g {generator name} command for language specific config options.")
+    @Once
     private String configFile;
 
 

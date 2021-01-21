@@ -19,8 +19,8 @@ package com.amartus.sonata.blender;
 
 import com.amartus.sonata.blender.cmd.Blend;
 import com.amartus.sonata.blender.cmd.Generate;
-import io.airlift.airline.Cli;
-import io.airlift.airline.Help;
+import com.github.rvesse.airline.Cli;
+import com.github.rvesse.airline.help.Help;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +33,7 @@ public class Blender {
     private static final Logger log = LoggerFactory.getLogger(Blender.class);
     public static void main(String[] args) {
         String version = "1.2";
-        Cli.CliBuilder<Runnable> builder =
+        var builder =
                 Cli.<Runnable>builder("sonata-blending-tool-cli")
                         .withDescription(
                                 String.format(

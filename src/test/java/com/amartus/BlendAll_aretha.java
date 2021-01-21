@@ -20,8 +20,8 @@ package com.amartus;
 
 import com.amartus.sonata.blender.cmd.Blend;
 import com.amartus.sonata.blender.cmd.Generate;
-import io.airlift.airline.Cli;
-import io.airlift.airline.Help;
+import com.github.rvesse.airline.Cli;
+import com.github.rvesse.airline.help.Help;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,11 +38,11 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class BlendAllR5 {
+public class BlendAll_aretha {
     final static Predicate<String> isYaml = f -> f.toLowerCase().endsWith(".yaml");
     final static Predicate<String> isManagement = f -> f.toLowerCase().contains("management");
     final static Function<Path, String> toName = f -> f.getFileName().toString();
-    private static final Logger log = LoggerFactory.getLogger(BlendAllR5.class);
+    private static final Logger log = LoggerFactory.getLogger(BlendAll_aretha.class);
 
     public static void main(String[] args) throws IOException {
         final var mapping = Map.of(
@@ -116,7 +116,7 @@ public class BlendAllR5 {
 
 
         String version = "1.0";
-        Cli.CliBuilder<Runnable> builder =
+        var builder =
                 Cli.<Runnable>builder("openapi-generator-wrapper-cli")
                         .withDescription(
                                 String.format(
