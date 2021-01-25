@@ -23,13 +23,14 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.lang3.text.WordUtils;
 
 import java.net.URI;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class UrnBasedNamingStrategy implements ProductSpecificationNamingStrategy {
     public static void main(String[] args) {
-        var p = "urn:mef:oas:schemas:sonata:AccessElineOvc:1.0.0:poq";
+        var p = "urn:mef:oas:schemas:sonata:access-eline-ovc:1.0.0:poq";
 
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode parentNode = objectMapper.createObjectNode();
@@ -37,7 +38,7 @@ public class UrnBasedNamingStrategy implements ProductSpecificationNamingStrateg
 
         Optional<NameAndDiscriminator> nameAndDiscriminator = new UrnBasedNamingStrategy().provideNameAndDiscriminator(null, parentNode);
 
-        System.out.println(nameAndDiscriminator);
+        System.out.println(nameAndDiscriminator.get());
     }
 
     @Override
@@ -56,7 +57,7 @@ public class UrnBasedNamingStrategy implements ProductSpecificationNamingStrateg
             String[] segments = uri.getRawSchemeSpecificPart().split(":");
             if ("mef".equals(segments[0])) {
                 try {
-                    var name = toName(segments[4], segments[5], segments[6]);
+                    var name = toName(segments[4]);
                     return Optional.of(new NameAndDiscriminator(name, id));
                 } catch (NullPointerException | IndexOutOfBoundsException e) {
                 }
@@ -66,11 +67,14 @@ public class UrnBasedNamingStrategy implements ProductSpecificationNamingStrateg
         return Optional.empty();
     }
 
-    private String toName(String type, String version, String function) {
-        return Stream.of(
-                WordUtils.capitalize(type),
-                WordUtils.capitalize(function),
-                "_" + version
-        ).collect(Collectors.joining());
+    private String toName(String type) {
+        return split(type, '-').map(WordUtils::capitalize)
+                .collect(Collectors.joining(""));
+    }
+
+    private Stream<String> split(String word, char... separators) {
+        if (separators.length == 0) return Stream.of(word);
+        String regex = "[" + new String(separators) + "]";
+        return Arrays.stream(word.split(regex));
     }
 }

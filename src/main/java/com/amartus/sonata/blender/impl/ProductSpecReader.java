@@ -107,7 +107,7 @@ public class ProductSpecReader {
 
         target
                 .extensions(extensions)
-                .title(specification.getTitle());
+                .title(null);
 
         specification
                 .extensions(null)
