@@ -19,13 +19,17 @@
 package com.amartus.sonata.blender.impl.util;
 
 import io.swagger.v3.oas.models.media.ComposedSchema;
+import io.swagger.v3.oas.models.media.ObjectSchema;
 import io.swagger.v3.oas.models.media.Schema;
 
 import java.net.URI;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 public interface OasUtils {
 
@@ -41,16 +45,45 @@ public interface OasUtils {
         return "#/components/schemas/" + name;
     }
 
+
     static boolean isReferencingSchema(Schema schema) {
-        Predicate<List<Schema>> onlyReferences = x -> x != null
-                && x.size() > 0
-                && x.stream().allMatch(s -> s.get$ref() != null);
+        Predicate<List<Schema>> onlyReferences = x -> {
+            var refs = Helpers.safeConvert.andThen(Helpers.references)
+                    .apply(x);
+            return refs > 0 && refs == x.size();
+        };
         if (schema instanceof ComposedSchema) {
             return
                     onlyReferences.test(((ComposedSchema) schema).getAllOf())
-                            || onlyReferences.test(((ComposedSchema) schema).getOneOf());
+                            || onlyReferences.test(((ComposedSchema) schema).getOneOf())
+                            || onlyReferences.test(((ComposedSchema) schema).getAnyOf());
+
         }
         return false;
+    }
+
+    static long countReferences(Schema schema) {
+        final var counter = Helpers.safeConvert.andThen(Helpers.references);
+        if (schema instanceof ObjectSchema) {
+            return Helpers.references.apply(Stream.of(schema));
+        }
+        if (schema instanceof ComposedSchema) {
+            var cs = (ComposedSchema) schema;
+            return Stream.of(
+                    counter.apply(cs.getAllOf()),
+                    counter.apply(cs.getAnyOf()),
+                    counter.apply(cs.getOneOf())
+            ).reduce(0L, Long::sum);
+        }
+        return 0;
+    }
+
+    static Stream<Schema> allSchemas(ComposedSchema cs) {
+        return Stream.of(
+                cs.getAllOf(),
+                cs.getAnyOf(),
+                cs.getOneOf()
+        ).flatMap(Helpers.safeConvert);
     }
 
     List<String> discriminatorCandidates = List.of(
@@ -71,4 +104,16 @@ public interface OasUtils {
     }
 
 
+}
+
+class Helpers {
+    static final Function<Stream<Schema>, Long> references = s -> s
+            .filter(
+                    x -> x.get$ref() != null
+                            && Optional.ofNullable(x.getProperties()).map(Map::isEmpty).orElse(true)
+            ).count();
+
+    static final Function<List<Schema>, Stream<Schema>> safeConvert = x -> Optional.ofNullable(x)
+            .stream()
+            .flatMap(Collection::stream);
 }

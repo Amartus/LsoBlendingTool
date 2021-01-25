@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
+import java.util.Optional;
 
 public class MergeSchemasAction {
     protected static final String DISCRIMINATOR_NAME = "@type";
@@ -72,17 +73,20 @@ public class MergeSchemasAction {
     }
 
     private void validateTargetExists() {
-        Schema<?> schema = this.openAPI.getComponents().getSchemas().get(modelToAugment);
-        if (schema == null) {
+        if (getTargetSchema().isEmpty()) {
             log.error("Schema with name '{}' is not present in the API", modelToAugment);
             throw new IllegalStateException(String.format("Schema '%s' not found in the specification", modelToAugment));
         }
     }
 
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
     private void prepareTargetForExtension() {
-        Schema<?> schema = this.openAPI.getComponents().getSchemas().get(modelToAugment);
+        var schema = getTargetSchema().get();
 
-        boolean hasTypeDefined = schema.getProperties().containsKey(DISCRIMINATOR_NAME);
+        boolean hasTypeDefined = Optional.ofNullable(schema.getProperties())
+                .map(p -> p.containsKey(DISCRIMINATOR_NAME))
+                .orElse(false);
+
         if (!hasTypeDefined) {
             log.info("Adding field {} to the {}", DISCRIMINATOR_NAME, modelToAugment);
             schema.addProperties(DISCRIMINATOR_NAME,
@@ -91,6 +95,16 @@ public class MergeSchemasAction {
         log.info("Adding discriminator to the {}", modelToAugment);
         schema.setDiscriminator(new Discriminator().propertyName(DISCRIMINATOR_NAME));
 
+    }
+
+    @SuppressWarnings("rawtypes")
+    private Optional<Schema> getTargetSchema() {
+        var allSchemas = Optional.ofNullable(this.openAPI.getComponents())
+                .flatMap(c -> Optional.ofNullable(c.getSchemas()));
+
+        return allSchemas
+                .map(all -> Optional.ofNullable(all.get(modelToAugment)))
+                .orElseThrow(() -> new IllegalStateException("API schemas are not resolved"));
     }
 
     private boolean isTargetReadyForExtension() {

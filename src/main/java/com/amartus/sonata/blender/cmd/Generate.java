@@ -19,7 +19,7 @@ package com.amartus.sonata.blender.cmd;
 
 import com.amartus.sonata.blender.impl.MergeSchemasAction;
 import com.amartus.sonata.blender.impl.postprocess.ComposedPropertyToType;
-import com.amartus.sonata.blender.impl.postprocess.ConvertOneOfToAllOffInheritence;
+import com.amartus.sonata.blender.impl.postprocess.ConvertOneOfToAllOffInheritance;
 import com.amartus.sonata.blender.impl.postprocess.PropertyEnumExternalize;
 import com.amartus.sonata.blender.impl.postprocess.RemoveSuperflousTypeDeclarations;
 import com.amartus.sonata.blender.impl.postprocess.SingleEnumToDiscriminatorValue;
@@ -60,7 +60,7 @@ public class Generate extends AbstractCmd implements Runnable {
     @Override
     public void run() {
         CodegenConfigurator configurator = CodegenConfigurator.fromFile(configFile);
-        if(configurator == null) {
+        if (configurator == null) {
             throw new IllegalStateException("Cannot use generator configuration from: " + configFile);
         }
         log.debug("Will generate artifacts using '{}' configuration", configFile);
@@ -70,7 +70,7 @@ public class Generate extends AbstractCmd implements Runnable {
 
         Map<String, Schema> productSchemas = toProductSpecifications();
 
-        if(StringUtils.isNotBlank(spec)) {
+        if (StringUtils.isNotBlank(spec)) {
             configurator.setInputSpec(spec);
         }
 
@@ -80,7 +80,7 @@ public class Generate extends AbstractCmd implements Runnable {
         } catch (GeneratorNotFoundException e) {
             log.error("Error in wrapper configuration", e);
             System.exit(1);
-        } catch(IllegalStateException e) {
+        } catch (IllegalStateException e) {
             log.error("Error in wrapper configuration", e);
             System.exit(2);
         }
@@ -107,7 +107,7 @@ public class Generate extends AbstractCmd implements Runnable {
             new PropertyEnumExternalize().accept(openAPI);
             new ComposedPropertyToType().accept(openAPI);
             new SingleEnumToDiscriminatorValue().accept(openAPI);
-            new ConvertOneOfToAllOffInheritence().accept(openAPI);
+            new ConvertOneOfToAllOffInheritance().accept(openAPI);
             new UpdateDiscriminatorMapping().accept(openAPI);
 
 //            new AlignTypeCompositionWithOasTools().accept(openAPI);

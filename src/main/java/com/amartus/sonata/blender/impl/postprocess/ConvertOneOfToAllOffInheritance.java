@@ -41,9 +41,9 @@ import java.util.stream.Collectors;
  *
  * @author bartosz.michalik@amartus.com
  */
-public class ConvertOneOfToAllOffInheritence implements Consumer<OpenAPI> {
+public class ConvertOneOfToAllOffInheritance implements Consumer<OpenAPI> {
 
-    private static final Logger log = LoggerFactory.getLogger(ConvertOneOfToAllOffInheritence.class);
+    private static final Logger log = LoggerFactory.getLogger(ConvertOneOfToAllOffInheritance.class);
     private OasWrapper openAPI;
     private Predicate<Schema> isReference = s -> s.get$ref() != null;
     private Predicate<Schema> isOneOf = s -> {

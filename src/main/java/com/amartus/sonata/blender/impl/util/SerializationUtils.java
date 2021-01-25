@@ -19,6 +19,7 @@
 package com.amartus.sonata.blender.impl.util;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
@@ -28,15 +29,16 @@ import org.openapitools.codegen.serializer.OpenAPISerializer;
 
 public abstract class SerializationUtils {
 
-
     public static ObjectMapper yamlMapper() {
         SimpleModule module = new SimpleModule("OpenAPIModule");
         module.addSerializer(OpenAPI.class, new OpenAPISerializer());
 
-        var yamlMapper = Yaml.mapper();
+        var ym = Yaml.mapper();
 
-        return yamlMapper.registerModule(module)
+        return ym.registerModule(module)
                 .addMixIn(Object.class, IgnorePropertyMixin.class)
+                .setSerializationInclusion(JsonInclude.Include.NON_EMPTY)
+
                 .configure(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, true);
     }
 

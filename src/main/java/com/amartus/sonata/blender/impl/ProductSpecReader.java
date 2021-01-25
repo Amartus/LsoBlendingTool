@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.parser.util.DeserializationUtils;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.media.ComposedSchema;
+import io.swagger.v3.oas.models.media.ObjectSchema;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.parser.OpenAPIResolver;
 import org.slf4j.Logger;
@@ -34,9 +35,11 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -89,7 +92,7 @@ public class ProductSpecReader {
 
         Map<String, Schema> resolved = resolve(schema);
         ComposedSchema wrapper = (ComposedSchema) resolved.remove(KEY);
-        Schema productCharacteristicsRef = wrapper.getAllOf().get(0);
+        Schema extensionParent = wrapper.getAllOf().get(0);
         Schema specification = resolved.remove(toRefName(wrapper.getAllOf().get(1)));
         Map<String, Object> extensions = specification.getExtensions();
         if (extensions == null) {
@@ -100,9 +103,10 @@ public class ProductSpecReader {
             extensions.put(DISCRIMINATOR_VALUE, productName.getDiscriminatorValue());
         }
 
+        var allOf = Stream.concat(Stream.of(extensionParent), unpack(specification));
+
         Schema target = new ComposedSchema()
-                .addAllOfItem(productCharacteristicsRef)
-                .addAllOfItem(specification)
+                .allOf(allOf.collect(Collectors.toList()))
                 .extensions(extensions);
 
         target
@@ -116,6 +120,26 @@ public class ProductSpecReader {
         resolved.put(productName.getName(), target);
 
         return resolved;
+    }
+
+    private Stream<Schema> unpack(Schema specification) {
+        if (specification instanceof ComposedSchema) {
+            var cs = (ComposedSchema) specification;
+            var composition = Stream.of(
+                    Optional.ofNullable(cs.getAllOf()),
+                    Optional.ofNullable(cs.getOneOf()),
+                    Optional.ofNullable(cs.getAnyOf())
+            ).flatMap(Optional::stream).flatMap(Collection::stream);
+
+            var object = Optional.ofNullable(specification.getProperties())
+                    .map(p -> new ObjectSchema()
+                            .properties(p).description(specification.getDescription())
+                    ).stream();
+
+            return Stream.concat(composition, object);
+
+        }
+        return Stream.of(specification);
     }
 
     private ProductSpecificationNamingStrategy.NameAndDiscriminator toName(String schemaPath) throws IOException {
