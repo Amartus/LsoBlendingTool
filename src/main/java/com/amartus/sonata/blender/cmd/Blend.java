@@ -37,7 +37,6 @@ import io.swagger.v3.parser.core.models.ParseOptions;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -64,10 +63,7 @@ public class Blend extends AbstractCmd implements Runnable {
         if (allSchemas) {
             productSpecifications = findAllProductSpecifications();
         }
-
         validateProductSpecs(productSpecifications);
-
-
         var options = new ParseOptions();
 //        options.setResolveFully(true);
         options.setResolve(true);
@@ -98,12 +94,7 @@ public class Blend extends AbstractCmd implements Runnable {
 
         try {
             File output = new File(this.spec + ".modified");
-            File snake = new File(this.spec + ".modified.snake");
             log.info("Writing to {}", output);
-
-            var yaml = new Yaml();
-            yaml.dump(openAPI, new FileWriter(snake));
-
             mapper.writeValue(new FileWriter(output), openAPI);
         } catch (IOException e) {
             throw new IllegalStateException("Error writing file", e);

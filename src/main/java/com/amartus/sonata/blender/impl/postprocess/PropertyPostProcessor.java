@@ -82,11 +82,26 @@ public abstract class PropertyPostProcessor extends AbstractPostProcessor {
     }
 
     protected String proposeName(String name) {
+        name = escape(name);
+
         Map<String, Schema> types = api.schemas();
         String candidate = WordUtils.capitalize(name);
         if (types.containsKey(candidate)) {
             candidate = currentType + candidate;
         }
         return candidate;
+    }
+
+    protected String escape(String name) {
+        final var mapping = Map.of(
+                "@", "_at",
+                "!", "_ex"
+        );
+
+        for (var e : mapping.entrySet()) {
+            name = name.replaceAll(e.getKey(), e.getValue());
+        }
+
+        return name;
     }
 }

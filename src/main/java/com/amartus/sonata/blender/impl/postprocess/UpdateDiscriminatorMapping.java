@@ -24,6 +24,7 @@ import io.swagger.v3.oas.models.media.Schema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
 import java.util.Optional;
 
 public class UpdateDiscriminatorMapping extends AbstractPostProcessor {
@@ -38,7 +39,7 @@ public class UpdateDiscriminatorMapping extends AbstractPostProcessor {
 
             var parentCandidate = OasUtils.allSchemas(cs)
                     .filter(s -> s.get$ref() != null)
-                    .filter(s -> s.getProperties().isEmpty())
+                    .filter(s -> Optional.ofNullable(s.getProperties()).map(Map::isEmpty).orElse(true))
                     .findFirst();
 
             parentCandidate.ifPresent(parent -> {

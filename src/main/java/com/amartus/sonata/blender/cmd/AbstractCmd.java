@@ -36,6 +36,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public abstract class AbstractCmd {
     private static final Logger log = LoggerFactory.getLogger(AbstractCmd.class);
@@ -44,7 +45,15 @@ public abstract class AbstractCmd {
             title = "product specifications",
             description = "sets of product specification you would like to integrate")
     @RequireOnlyOne(tag = "allOrSelective")
+    @Deprecated
     protected List<String> productSpecifications = new ArrayList<>();
+
+    @Option(
+            name = {"-b", "--blended-schema"},
+            title = "specifications to be blend (integrate) in",
+            description = "sets of specifications (e.g. specific product or service definitnions) you would like to integrate")
+    @RequireOnlyOne(tag = "allOrSelective")
+    protected List<String> blendedSchema = new ArrayList<>();
 
     @Option(
             name = {"-d", "--product-spec-root-dir"},
@@ -93,7 +102,7 @@ public abstract class AbstractCmd {
     protected Map<String, Schema> toProductSpecifications() {
         var root = Path.of(productsRootDir);
 
-        return productSpecifications.stream()
+        return Stream.concat(productSpecifications.stream(), blendedSchema.stream())
                 .flatMap(schema -> new ProductSpecReader(modelToAugment, root, schema).readSchemas().entrySet().stream())
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> {
                     if (a.equals(b)) return a;
