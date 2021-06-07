@@ -26,7 +26,10 @@ import com.amartus.sonata.blender.impl.postprocess.RemoveSuperflousTypeDeclarati
 import com.amartus.sonata.blender.impl.postprocess.SingleEnumToDiscriminatorValue;
 import com.amartus.sonata.blender.impl.postprocess.SortTypesByName;
 import com.amartus.sonata.blender.impl.postprocess.UpdateDiscriminatorMapping;
+import com.amartus.sonata.blender.impl.specifications.UrnBasedNamingStrategy;
 import com.amartus.sonata.blender.impl.util.SerializationUtils;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.rvesse.airline.annotations.Command;
 import com.github.rvesse.airline.annotations.Option;
 import com.github.rvesse.airline.annotations.restrictions.Once;
@@ -45,6 +48,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Command(name = "blend", description = "Blend Product Specifications into OpenAPI.")
@@ -57,23 +61,30 @@ public class Blend extends AbstractCmd implements Runnable {
             description = "sort data types in a lexical order")
     @Once
     private boolean sorted = false;
+    private UrnPredicate urnPredicate;
 
     @Override
     public void run() {
         if (allSchemas) {
-            productSpecifications = findAllProductSpecifications();
-        }
-        validateProductSpecs(productSpecifications);
-        var options = new ParseOptions();
-//        options.setResolveFully(true);
-        options.setResolve(true);
+            blendedSchema = findAllProductSpecifications();
 
-        SwaggerParseResult result = new OpenAPIParser().readLocation(this.spec, List.of(), options);
-        OpenAPI openAPI = result.getOpenAPI();
+        } else {
+            blendedSchema = blendingSchemas().collect(Collectors.toList());
+        }
+        productSpecifications = List.of();
+
+        validateProductSpecs(blendedSchema);
+        OpenAPI openAPI;
+        try {
+            openAPI = readApi();
+        } catch (Exception e) {
+            return;
+        }
+
         Map<String, Schema> schemasToInject = this.toProductSpecifications();
 
         log.debug("Injecting {} schemas from {} product spec descriptions",
-                schemasToInject.size(), productSpecifications.size());
+                schemasToInject.size(), blendedSchema.size());
 
         new MergeSchemasAction(modelToAugment, strict)
                 .schemasToInject(schemasToInject)
@@ -101,17 +112,81 @@ public class Blend extends AbstractCmd implements Runnable {
         }
     }
 
+    private OpenAPI readApi() {
+        var options = new ParseOptions();
+//        options.setResolveFully(true);
+        options.setResolve(true);
+        try {
+            SwaggerParseResult result = new OpenAPIParser().readLocation(this.spec, List.of(), options);
+            var api = result.getOpenAPI();
+            if (api == null) {
+                log.warn("Location {} does not contain a valid schema", this.spec);
+                throw new RuntimeException(String.format("%s is not a valid schema", this.spec));
+            }
+            return api;
+        } catch (RuntimeException e) {
+            log.warn("Cannot read schema from {}", this.spec);
+            throw e;
+        }
+    }
+
     private List<String> findAllProductSpecifications() {
         var root = Path.of(productsRootDir);
         try {
             return Files.list(root)
                     .filter(f -> !Files.isDirectory(f))
+                    .filter(path -> getUrnPredicate().test(path))
                     .map(p -> root.relativize(p).toString())
                     .collect(Collectors.toList());
         } catch (IOException e) {
             throw new IllegalArgumentException(String.format("Cannot read %s", root), e);
         }
     }
+
+    private UrnPredicate getUrnPredicate() {
+        if (urnPredicate == null) {
+            urnPredicate = new UrnPredicate();
+        }
+        return urnPredicate;
+    }
+
+    private static class UrnPredicate implements Predicate<Path> {
+        private final ObjectMapper json;
+        private final ObjectMapper yaml;
+        private final UrnBasedNamingStrategy namingStrategy;
+
+        private UrnPredicate() {
+            this.json = SerializationUtils.jsonMapper();
+            this.yaml = SerializationUtils.yamlMapper();
+            this.namingStrategy = new UrnBasedNamingStrategy();
+        }
+
+        @Override
+        public boolean test(Path path) {
+            var isUrn = namingStrategy.provideNameAndDiscriminator(null, read(path))
+                    .isPresent();
+            if (!isUrn) {
+                log.info("{} is not a valid MEF URN schema. skipping", path);
+            }
+            return isUrn;
+        }
+
+        private JsonNode read(Path path) {
+            File file = path.toFile();
+            try {
+                return json.readTree(file);
+
+            } catch (IOException e) {
+                try {
+                    return yaml.readTree(file);
+                } catch (IOException ioException) {
+                    return null;
+                }
+            }
+        }
+    }
 }
+
+
 
 

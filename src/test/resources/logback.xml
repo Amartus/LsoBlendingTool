@@ -27,6 +27,7 @@
         <!--            <level>ERROR</level>-->
         <!--        </filter>-->
     </appender>
+
     <root level="debug">
         <appender-ref ref="STDERR"/>
     </root>

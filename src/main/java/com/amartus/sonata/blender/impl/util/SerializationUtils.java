@@ -30,18 +30,22 @@ import org.openapitools.codegen.serializer.OpenAPISerializer;
 public abstract class SerializationUtils {
 
     public static ObjectMapper yamlMapper() {
-        SimpleModule module = new SimpleModule("OpenAPIModule");
-        module.addSerializer(OpenAPI.class, new OpenAPISerializer());
-
-        var ym = new YamlMapperFactory().createYaml();
-
-        return ym.registerModule(module)
-                .addMixIn(Object.class, IgnorePropertyMixin.class)
-                .setSerializationInclusion(JsonInclude.Include.NON_EMPTY)
-
-                .configure(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, true);
+        return enhance(new YamlMapperFactory().createYaml());
     }
 
+    public static ObjectMapper jsonMapper() {
+        return enhance(new ObjectMapper());
+    }
+
+    private static ObjectMapper enhance(ObjectMapper mapper) {
+        SimpleModule module = new SimpleModule("OpenAPIModule");
+        module.addSerializer(OpenAPI.class, new OpenAPISerializer());
+        mapper.registerModule(module)
+                .addMixIn(Object.class, IgnorePropertyMixin.class)
+                .setSerializationInclusion(JsonInclude.Include.NON_EMPTY)
+                .configure(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, true);
+        return mapper;
+    }
 
     private abstract class IgnorePropertyMixin {
         @JsonIgnore

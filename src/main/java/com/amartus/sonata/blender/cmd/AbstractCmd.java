@@ -49,9 +49,9 @@ public abstract class AbstractCmd {
     protected List<String> productSpecifications = new ArrayList<>();
 
     @Option(
-            name = {"-b", "--blended-schema"},
+            name = {"-b", "--blending-schema"},
             title = "specifications to be blend (integrate) in",
-            description = "sets of specifications (e.g. specific product or service definitnions) you would like to integrate")
+            description = "sets of specifications (e.g. specific product or service definitions) you would like to integrate")
     @RequireOnlyOne(tag = "allOrSelective")
     protected List<String> blendedSchema = new ArrayList<>();
 
@@ -102,13 +102,17 @@ public abstract class AbstractCmd {
     protected Map<String, Schema> toProductSpecifications() {
         var root = Path.of(productsRootDir);
 
-        return Stream.concat(productSpecifications.stream(), blendedSchema.stream())
+        return blendingSchemas()
                 .flatMap(schema -> new ProductSpecReader(modelToAugment, root, schema).readSchemas().entrySet().stream())
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> {
                     if (a.equals(b)) return a;
                     throw new IllegalArgumentException(String.format("Object for the same key does not match %s %s", a, b));
                 }));
 
+    }
+
+    protected Stream<String> blendingSchemas() {
+        return Stream.concat(productSpecifications.stream(), blendedSchema.stream());
     }
 
     protected void validateProductSpecs(List<String> productSpecifications) {
