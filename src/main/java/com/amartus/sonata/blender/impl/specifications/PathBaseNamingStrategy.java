@@ -17,7 +17,6 @@
  */
 package com.amartus.sonata.blender.impl.specifications;
 
-import com.amartus.sonata.blender.impl.util.PathUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import java.net.URI;
@@ -25,12 +24,11 @@ import java.util.Optional;
 
 public class PathBaseNamingStrategy implements ProductSpecificationNamingStrategy {
     @Override
-    public Optional<NameAndDiscriminator> provideNameAndDiscriminator(String schemaLocation, JsonNode fileContent) {
+    public Optional<NameAndDiscriminator> provideNameAndDiscriminator(URI schemaLocation, JsonNode fileContent) {
         if (schemaLocation == null) {
             return Optional.empty();
         }
-        URI uri = PathUtils.toUri(schemaLocation);
-        return Optional.ofNullable(uri.getPath())
+        return Optional.ofNullable(schemaLocation.getPath())
                 .map(f -> {
                     var idx = f.lastIndexOf("/");
                     if (idx < 0 || idx == f.length() - 1) {

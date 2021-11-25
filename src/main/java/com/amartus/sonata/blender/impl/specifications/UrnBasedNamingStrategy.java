@@ -18,9 +18,9 @@
 package com.amartus.sonata.blender.impl.specifications;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.lang3.text.WordUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.util.Arrays;
@@ -29,20 +29,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class UrnBasedNamingStrategy implements ProductSpecificationNamingStrategy {
-    public static void main(String[] args) {
-        var p = "urn:mef:oas:schemas:sonata:access-eline-ovc:1.0.0:poq";
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        ObjectNode parentNode = objectMapper.createObjectNode();
-        parentNode.put("$id", p);
-
-        Optional<NameAndDiscriminator> nameAndDiscriminator = new UrnBasedNamingStrategy().provideNameAndDiscriminator(null, parentNode);
-
-        System.out.println(nameAndDiscriminator.get());
-    }
+    private static final Logger log = LoggerFactory.getLogger(UrnBasedNamingStrategy.class);
 
     @Override
-    public Optional<NameAndDiscriminator> provideNameAndDiscriminator(String schemaLocation, JsonNode fileContent) {
+    public Optional<NameAndDiscriminator> provideNameAndDiscriminator(URI schemaLocation, JsonNode fileContent) {
 
         return Optional.ofNullable(fileContent)
                 .map(fc -> fc.get("$id"))
@@ -60,6 +50,7 @@ public class UrnBasedNamingStrategy implements ProductSpecificationNamingStrateg
                     var name = toName(segments[4]);
                     return Optional.of(new NameAndDiscriminator(name, id));
                 } catch (NullPointerException | IndexOutOfBoundsException e) {
+                    log.info("{} is not MEF urn", id);
                 }
             }
 

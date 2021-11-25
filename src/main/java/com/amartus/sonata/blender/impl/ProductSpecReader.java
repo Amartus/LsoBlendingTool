@@ -32,41 +32,39 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URI;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.amartus.sonata.blender.impl.util.PathUtils.toFileName;
-import static com.amartus.sonata.blender.impl.util.PathUtils.toRelative;
-
+@SuppressWarnings({"unchecked"})
 public class ProductSpecReader {
     public static final String DISCRIMINATOR_VALUE = "x-discriminator-value";
 
     private static final String KEY = "___to_remove";
     private static final Logger log = LoggerFactory.getLogger(ProductSpecReader.class);
-    private final String schemaPath;
+    private final Path schemaPath;
     private final String modelToAugment;
-    private final Path parentLocation;
     private final List<ProductSpecificationNamingStrategy> namingStrategies;
-    private Charset charset = Charset.forName("utf8");
+    private final Charset charset = StandardCharsets.UTF_8;
+    private final String fragment;
 
-    public ProductSpecReader(String modelToAugment, Path parentLocation, String schemaPath) {
+    public ProductSpecReader(String modelToAugment, Path schemaLocation) {
+        this(modelToAugment, schemaLocation, "");
+    }
 
-        this.schemaPath = schemaPath;
-        this.parentLocation = parentLocation == null ? Path.of(".") : toRelative(parentLocation);
-        if (!Files.isDirectory(this.parentLocation)) {
-            throw new IllegalArgumentException("Path " + this.parentLocation + " is not a directory");
+    public ProductSpecReader(String modelToAugment, Path schemaLocation, String fragment) {
+        this.schemaPath = Objects.requireNonNull(schemaLocation).toAbsolutePath();
+        this.fragment = Objects.requireNonNull(fragment);
+        if (!Files.exists(this.schemaPath)) {
+            throw new IllegalArgumentException("Path " + this.schemaPath + " does not exists");
         }
 
-        log.info("Root directory for schemas {}", this.parentLocation.toAbsolutePath());
-        log.debug("Relative schema path {}", schemaPath);
+
         this.modelToAugment = modelToAugment;
         this.namingStrategies = Stream.of(
                 new UrnBasedNamingStrategy(),
@@ -75,22 +73,23 @@ public class ProductSpecReader {
         ).collect(Collectors.toList());
     }
 
-    public Map<String, Schema> readSchemas() {
+    public Map<String, Schema<?>> readSchemas() {
+        log.info("Resolving {}", this.schemaPath);
         OpenAPI api = new OpenAPI();
 
         ComposedSchema schema = new ComposedSchema()
-                .addAllOfItem(new Schema().$ref("#/components/schemas/" + modelToAugment))
-                .addAllOfItem(new Schema().$ref(schemaPath));
+                .addAllOfItem(new Schema<>().$ref("#/components/schemas/" + modelToAugment))
+                .addAllOfItem(new Schema<>().$ref(schemaName()));
         api.schema(KEY, schema);
 
-        ProductSpecificationNamingStrategy.NameAndDiscriminator productName = null;
+        ProductSpecificationNamingStrategy.NameAndDiscriminator productName;
         try {
-            productName = toName(schemaPath);
+            productName = toName();
         } catch (IOException e) {
-            throw new IllegalArgumentException(String.format("Cannot read schema for %s", schema()), e);
+            throw new IllegalArgumentException(String.format("Cannot read schema for %s", schemaPath), e);
         }
 
-        Map<String, Schema> resolved = resolve(schema);
+        Map<String, Schema<?>> resolved = resolve(schema);
         ComposedSchema wrapper = (ComposedSchema) resolved.remove(KEY);
         Schema extensionParent = wrapper.getAllOf().get(0);
         Schema specification = resolved.remove(toRefName(wrapper.getAllOf().get(1)));
@@ -122,6 +121,10 @@ public class ProductSpecReader {
         return resolved;
     }
 
+    private String schemaName() {
+        return schemaPath.getFileName().toString() + fragment;
+    }
+
     private Stream<Schema> unpack(Schema specification) {
         if (specification instanceof ComposedSchema) {
             var cs = (ComposedSchema) specification;
@@ -142,30 +145,31 @@ public class ProductSpecReader {
         return Stream.of(specification);
     }
 
-    private ProductSpecificationNamingStrategy.NameAndDiscriminator toName(String schemaPath) throws IOException {
-        Path file = schema();
+    private ProductSpecificationNamingStrategy.NameAndDiscriminator toName() throws IOException {
+        Path file = schemaPath;
 
         var content = Files.readString(file, charset);
         JsonNode tree = DeserializationUtils.deserializeIntoTree(content, file.toString());
 
+        var uri = URI.create(schemaName()).resolve(fragment);
+
+        //TODO consider passing only tree fragment referenced by URI fragment
         return namingStrategies.stream()
-                .flatMap(str -> str.provideNameAndDiscriminator(schemaPath, tree).stream())
+                .flatMap(str -> str.provideNameAndDiscriminator(uri, tree).stream())
                 .findFirst()
-                .orElse(new ProductSpecificationNamingStrategy.NameAndDiscriminator(schemaPath));
+                .orElse(new ProductSpecificationNamingStrategy.NameAndDiscriminator(schemaName()));
     }
 
     private String toRefName(Schema schema) {
         return schema.get$ref().replace("#/components/schemas/", "");
     }
 
-    private Map<String, Schema> resolve(ComposedSchema schema) {
-        OpenAPIResolver r = new OpenAPIResolver(new OpenAPI().schema(KEY, schema), null, schema().toString());
-        return r.resolve()
-                .getComponents().getSchemas();
+    private Map<String, Schema<?>> resolve(ComposedSchema schema) {
+        var parentFile = schemaPath.toString();
+        OpenAPIResolver r = new OpenAPIResolver(new OpenAPI().schema(KEY, schema), null, parentFile);
+        return r.resolve().getComponents().getSchemas()
+                .entrySet().stream()
+                .map(e -> Map.entry(e.getKey(), (Schema<?>) e.getValue()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
-
-    private Path schema() {
-        return parentLocation.resolve(toFileName(schemaPath));
-    }
-
 }

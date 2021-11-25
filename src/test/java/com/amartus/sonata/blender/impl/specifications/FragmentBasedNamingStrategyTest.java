@@ -24,6 +24,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.net.URI;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -33,16 +34,16 @@ class FragmentBasedNamingStrategyTest {
     private static Stream<Arguments> toCheck() {
         return Stream.of(
                 Arguments.of(null, false),
-                Arguments.of("xxx", false),
-                Arguments.of("/aaa/bbb/xxx", false),
-                Arguments.of("aaa/bbb/xxx", false),
-                Arguments.of("xxx.json#/abc/def", true),
-                Arguments.of("xxx.json#/abc/def/", true),
-                Arguments.of("aaa/bbb/xxx.json#/abc/def/", true),
-                Arguments.of("file://a/b/c", false),
-                Arguments.of("file://a/b/c#xxx", true),
-                Arguments.of("http://amartus.com/xxx", false),
-                Arguments.of("http://amartus.com#/xxx", true)
+                Arguments.of(URI.create("xxx"), false),
+                Arguments.of(URI.create("/aaa/bbb/xxx"), false),
+                Arguments.of(URI.create("aaa/bbb/xxx"), false),
+                Arguments.of(URI.create("xxx.json#/abc/def"), true),
+                Arguments.of(URI.create("xxx.json#/abc/def/"), true),
+                Arguments.of(URI.create("aaa/bbb/xxx.json#/abc/def/"), true),
+                Arguments.of(URI.create("file://a/b/c"), false),
+                Arguments.of(URI.create("file://a/b/c#xxx"), true),
+                Arguments.of(URI.create("http://amartus.com/xxx"), false),
+                Arguments.of(URI.create("http://amartus.com#/xxx"), true)
         );
     }
 
@@ -53,7 +54,7 @@ class FragmentBasedNamingStrategyTest {
 
     @ParameterizedTest
     @MethodSource("toCheck")
-    void testStrategy(String schemaLocation, boolean shouldBePresent) {
+    void testStrategy(URI schemaLocation, boolean shouldBePresent) {
         Optional<ProductSpecificationNamingStrategy.NameAndDiscriminator> response = strategy.provideNameAndDiscriminator(schemaLocation, null);
         Assertions.assertEquals(shouldBePresent, response.isPresent());
     }

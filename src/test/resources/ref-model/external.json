@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "http://example.com/schemas/external.json",
+  "properties": {
+    "p1": {
+      "type": "string"
+    },
+    "p2": {
+      "type": "string"
+    },
+    "p3": {
+      "$ref": "#/definitions/sub-schema"
+    }
+  },
+  "definitions": {
+    "sub-schema": {
+      "type": "object",
+      "properties": {
+        "p21": {
+          "type": "string"
+        },
+        "p22": {
+          "$ref": "./common/common.json"
+        }
+      }
+    }
+  }
+}

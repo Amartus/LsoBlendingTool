@@ -19,6 +19,7 @@ package com.amartus.sonata.blender.impl.specifications;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import java.net.URI;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -26,7 +27,7 @@ import java.util.Optional;
  * Discriminator type resolution strategy for product specifications
  */
 public interface ProductSpecificationNamingStrategy {
-    Optional<NameAndDiscriminator> provideNameAndDiscriminator(String schemaLocation, JsonNode fileContent);
+    Optional<NameAndDiscriminator> provideNameAndDiscriminator(URI schemaLocation, JsonNode fileContent);
 
     class NameAndDiscriminator {
         private final String name;
