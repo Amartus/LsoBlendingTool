@@ -31,6 +31,7 @@ import java.util.Locale;
  */
 public class Blender {
     private static final Logger log = LoggerFactory.getLogger(Blender.class);
+
     public static void main(String[] args) {
         String version = "1.2";
         var builder =
@@ -48,7 +49,11 @@ public class Blender {
                         );
 
         try {
-            builder.build().parse(args).run();
+            if (args.length == 0) {
+                builder.build().parse("help").run();
+            } else {
+                builder.build().parse(args).run();
+            }
         } catch (Exception e) {
             log.error("Error:", e);
             System.out.println(e.getMessage());

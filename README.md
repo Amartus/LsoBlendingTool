@@ -28,7 +28,7 @@ SYNOPSIS
         sonata-blending-tool-cli generate
                 [ {-b | --blending-schema} <specifications to be blend (integrate) in>... ]
                 [ {-c | --config} <configuration file> ]
-                [ {-d | --product-spec-root-dir} <product specifications root directory> ]
+                [ {-d | --spec-root-dir} <root directory for specificatins to be blended> ]
                 [ {-e | -encoding} <files encoding> ]
                 [ {-i | --input-spec} <spec file> ]
                 [ {-m | --model-name} <model to be augmented> ]
@@ -57,8 +57,8 @@ OPTIONS
             This option may occur a maximum of 1 times
 
 
-        -d <product specifications root directory>, --product-spec-root-dir
-        <product specifications root directory>
+        -d <root directory for specificatins to be blended>, --spec-root-dir
+        <root directory for specificatins to be blended>
             sets of product specification root directory for specifications you
             would like to integrate
 
@@ -88,7 +88,6 @@ OPTIONS
             discriminator definition).
             If strict-mode is `false` tool will add a discriminator on the fly
             if possible.
-
 ```
 
 ### Usage example
@@ -97,9 +96,10 @@ Assuming you have a valid spring generator configuration
 (as explained [here](https://openapi-generator.tech/docs/generators/spring)) in `configurations/spring`
 
 ```shell script
-java -jar blender-1.5.jar generate -d ./schemas/POQ/ -b Access_E_Line_OVC.yaml -b Carrier_Ethernet_Operator_UNI.yaml \ 
-     -c ./configurations/spring/spring-server.yaml
-     -i ./api/serviceability/offeringQualification/productOfferingQualificationManagement.api.yaml 
+java -jar .\blender-1.6-SNAPSHOT.jar generate -i .\productApi\serviceability\offeringQualification\productOfferingQualificationManagement.api.yaml \
+     -c ./configurations/spring/spring-server.yaml \
+     -d .\productSchema\carrierEthernet \ 
+     -b accessEline\inventory\accessElineOvc.yaml -b carrierEthernetOperatorUni\inventory\carrierEthernetOperatorUni.yaml
 ```
 
 ## Tool `blend` command synopsis
@@ -114,7 +114,7 @@ NAME
 SYNOPSIS
         sonata-blending-tool-cli blend
                 [ {-b | --blending-schema} <specifications to be blend (integrate) in>... ]
-                [ {-d | --product-spec-root-dir} <product specifications root directory> ]
+                [ {-d | --spec-root-dir} <root directory for specificatins to be blended> ]
                 [ {-e | -encoding} <files encoding> ]
                 [ {-i | --input-spec} <spec file> ]
                 [ {-m | --model-name} <model to be augmented> ]
@@ -131,8 +131,8 @@ OPTIONS
             one option may be specified
 
 
-        -d <product specifications root directory>, --product-spec-root-dir
-        <product specifications root directory>
+        -d <root directory for specificatins to be blended>, --spec-root-dir
+        <root directory for specificatins to be blended>
             sets of product specification root directory for specifications you
             would like to integrate
 
@@ -167,7 +167,7 @@ OPTIONS
             Verify that model to be augmented allows for extension (contains
             discriminator definition).
             If strict-mode is `false` tool will add a discriminator on the fly
-            if possible.            
+            if possible.        
 ```
 
 ### Usage example for Sonata
@@ -175,8 +175,9 @@ OPTIONS
 Assumption is that this command is run from root of the Sonata SDK directory and jar file is in the same directory.
 
 ```shell script
-java -jar blender-1.5.jar blend -d ./schemas/POQ -b Access_E_Line_OVC.yaml -b Carrier_Ethernet_Operator_UNI.yaml \ 
-     -i ./api/serviceability/offeringQualification/productOfferingQualificationManagement.api.yaml 
+java -jar .\blender-1.6-SNAPSHOT.jar blend -i .\productApi\serviceability\offeringQualification\productOfferingQualificationManagement.api.yaml \
+     -d .\productSchema\carrierEthernet \ 
+     -b accessEline\inventory\accessElineOvc.yaml -b carrierEthernetOperatorUni\inventory\carrierEthernetOperatorUni.yaml
 ```
 
 ### Usage example for Legato
@@ -184,7 +185,7 @@ java -jar blender-1.5.jar blend -d ./schemas/POQ -b Access_E_Line_OVC.yaml -b Ca
 Assumption is that this command is run from root of the Legato SDK directory and jar file is in the same directory.
 
 ```shell script
- java -jar blender-1.5.jar blend -d spec/legato/carrierEthernet -m MefServiceConfiguration  \
+ java -jar blender-1.6.jar blend -d spec/legato/carrierEthernet -m MefServiceConfiguration  \
      -i ./api/legato/serviceProvisioning/serviceOrdering/v4/serviceOrderingApi.openapi.yaml \ 
     -b carrierEthernetOvc.yaml -b carrierEthernetSubscriberUni.yaml
 ```
