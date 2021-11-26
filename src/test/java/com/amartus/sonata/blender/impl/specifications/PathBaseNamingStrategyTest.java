@@ -35,15 +35,15 @@ class PathBaseNamingStrategyTest {
     private static Stream<Arguments> toCheck() {
         return Stream.of(
                 Arguments.of(null, false),
-                Arguments.of(URI.create("xxx"), false),
-                Arguments.of(URI.create("/aaa/bbb/xxx"), false),
-                Arguments.of(URI.create("aaa/bbb/xxx"), false),
+                Arguments.of(URI.create("xxx"), true),
+                Arguments.of(URI.create("/aaa/bbb/xxx"), true),
+                Arguments.of(URI.create("aaa/bbb/xxx"), true),
                 Arguments.of(URI.create("xxx.json#/abc/def"), true),
                 Arguments.of(URI.create("xxx.json#/abc/def/"), true),
                 Arguments.of(URI.create("aaa/bbb/xxx.json#/abc/def/"), true),
-                Arguments.of(URI.create("file://a/b/c"), false),
+                Arguments.of(URI.create("file://a/b/c"), true),
                 Arguments.of(URI.create("file://a/b/c#xxx"), true),
-                Arguments.of(URI.create("http://amartus.com/xxx"), false),
+                Arguments.of(URI.create("http://amartus.com/xxx"), true),
                 Arguments.of(URI.create("http://amartus.com#/xxx"), true)
         );
     }

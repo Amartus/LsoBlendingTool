@@ -18,12 +18,7 @@
 package com.amartus.sonata.blender.cmd;
 
 import com.amartus.sonata.blender.impl.MergeSchemasAction;
-import com.amartus.sonata.blender.impl.postprocess.ComposedPropertyToType;
-import com.amartus.sonata.blender.impl.postprocess.ConvertOneOfToAllOffInheritance;
-import com.amartus.sonata.blender.impl.postprocess.PropertyEnumExternalize;
-import com.amartus.sonata.blender.impl.postprocess.RemoveSuperflousTypeDeclarations;
-import com.amartus.sonata.blender.impl.postprocess.SingleEnumToDiscriminatorValue;
-import com.amartus.sonata.blender.impl.postprocess.UpdateDiscriminatorMapping;
+import com.amartus.sonata.blender.impl.postprocess.*;
 import com.github.rvesse.airline.annotations.Command;
 import com.github.rvesse.airline.annotations.Option;
 import com.github.rvesse.airline.annotations.restrictions.Once;
@@ -109,6 +104,7 @@ public class Generate extends AbstractCmd implements Runnable {
             new SingleEnumToDiscriminatorValue().accept(openAPI);
             new ConvertOneOfToAllOffInheritance().accept(openAPI);
             new UpdateDiscriminatorMapping().accept(openAPI);
+            new ConstrainDiscriminatorValueWithEnum().accept(openAPI);
 
 //            new AlignTypeCompositionWithOasTools().accept(openAPI);
 

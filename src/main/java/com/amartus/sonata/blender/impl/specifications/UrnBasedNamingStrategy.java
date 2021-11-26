@@ -45,7 +45,7 @@ public class UrnBasedNamingStrategy implements ProductSpecificationNamingStrateg
 
         if ("urn".equals(uri.getScheme())) {
             String[] segments = uri.getRawSchemeSpecificPart().split(":");
-            if ("mef".equals(segments[0])) {
+            if ("mef".equals(segments[0]) && segments.length == 7) {
                 try {
                     var name = toName(segments[4]);
                     return Optional.of(new NameAndDiscriminator(name, id));

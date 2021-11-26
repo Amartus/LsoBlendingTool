@@ -19,13 +19,7 @@
 package com.amartus.sonata.blender.cmd;
 
 import com.amartus.sonata.blender.impl.MergeSchemasAction;
-import com.amartus.sonata.blender.impl.postprocess.ComposedPropertyToType;
-import com.amartus.sonata.blender.impl.postprocess.ConvertOneOfToAllOffInheritance;
-import com.amartus.sonata.blender.impl.postprocess.PropertyEnumExternalize;
-import com.amartus.sonata.blender.impl.postprocess.RemoveSuperflousTypeDeclarations;
-import com.amartus.sonata.blender.impl.postprocess.SingleEnumToDiscriminatorValue;
-import com.amartus.sonata.blender.impl.postprocess.SortTypesByName;
-import com.amartus.sonata.blender.impl.postprocess.UpdateDiscriminatorMapping;
+import com.amartus.sonata.blender.impl.postprocess.*;
 import com.amartus.sonata.blender.impl.specifications.UrnBasedNamingStrategy;
 import com.amartus.sonata.blender.impl.util.SerializationUtils;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -97,6 +91,7 @@ public class Blend extends AbstractCmd implements Runnable {
         new SingleEnumToDiscriminatorValue().accept(openAPI);
         new ConvertOneOfToAllOffInheritance().accept(openAPI);
         new UpdateDiscriminatorMapping().accept(openAPI);
+        new ConstrainDiscriminatorValueWithEnum().accept(openAPI);
         if (sorted) {
             new SortTypesByName().accept(openAPI);
         }
