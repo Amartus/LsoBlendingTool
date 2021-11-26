@@ -56,7 +56,7 @@ public abstract class AbstractCmd {
             name = {"-d", "--spec-root-dir"},
             title = "root directory for specificatins to be blended",
             description = "sets of product specification root directory for specifications you would like to integrate")
-    protected String productsRootDir = null;
+    protected String productsRootDir = ".";
 
     @Option(name = {"-i", "--input-spec"}, title = "spec file",
             description = "location of the OpenAPI spec, as URL or file (required)")
@@ -99,16 +99,19 @@ public abstract class AbstractCmd {
     }
 
     protected Stream<Pair<Path, String>> toSchemaPaths(Stream<String> path) {
-        if (productsRootDir == null) {
-            return path
-                    .map(this::pathWithFragment)
-                    .map(p -> Pair.of(Path.of(p.first()), p.second()));
-        }
 
-        final var rootPath = Path.of(productsRootDir);
+        final var rootPath = Path.of(productsRootDir).toAbsolutePath();
         return path
                 .map(this::pathWithFragment)
-                .map(p -> Pair.of(rootPath.resolve(p.first()), p.second()));
+                .map(p -> Pair.of(toPath(p.first(), rootPath), p.second()));
+    }
+
+    private Path toPath(String path, Path root) {
+        var p = Path.of(path);
+        if (p.isAbsolute()) {
+            return p;
+        }
+        return root.resolve(p);
     }
 
     protected Pair<String, String> pathWithFragment(String path) {
