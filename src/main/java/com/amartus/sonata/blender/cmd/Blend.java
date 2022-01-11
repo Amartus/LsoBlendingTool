@@ -59,8 +59,8 @@ public class Blend extends AbstractCmd implements Runnable {
 
     @Override
     public void run() {
-        if (allSchemas) {
-            blendedSchema = findAllProductSpecifications();
+        if (allSchemas != null) {
+            blendedSchema = findAllProductSpecifications(allSchemas);
 
         } else {
             blendedSchema = blendingSchemas().collect(Collectors.toList());
@@ -125,22 +125,30 @@ public class Blend extends AbstractCmd implements Runnable {
         }
     }
 
-    private List<String> findAllProductSpecifications() {
+    private List<String> findAllProductSpecifications(String functionName) {
         var root = Path.of(productsRootDir);
+        var toInclude = getUrnPredicate(functionName);
         try {
-            return Files.list(root)
-                    .filter(f -> !Files.isDirectory(f))
-                    .filter(path -> getUrnPredicate().test(path))
+
+            return Files.walk(root)
+                    .filter(Files::isRegularFile)
+                    .filter(toInclude)
                     .map(p -> root.relativize(p).toString())
                     .collect(Collectors.toList());
+
+//            return Files.list(root)
+//                    .filter(f -> !Files.isDirectory(f))
+//                    .filter(toInclude)
+//                    .map(p -> root.relativize(p).toString())
+//                    .collect(Collectors.toList());
         } catch (IOException e) {
             throw new IllegalArgumentException(String.format("Cannot read %s", root), e);
         }
     }
 
-    private UrnPredicate getUrnPredicate() {
+    private UrnPredicate getUrnPredicate(String functionName) {
         if (urnPredicate == null) {
-            urnPredicate = new UrnPredicate();
+            urnPredicate = new UrnPredicate(functionName);
         }
         return urnPredicate;
     }
@@ -149,21 +157,27 @@ public class Blend extends AbstractCmd implements Runnable {
         private final ObjectMapper json;
         private final ObjectMapper yaml;
         private final UrnBasedNamingStrategy namingStrategy;
+        private final String functionName;
 
-        private UrnPredicate() {
+        private UrnPredicate(String functionName) {
             this.json = SerializationUtils.jsonMapper();
             this.yaml = SerializationUtils.yamlMapper();
             this.namingStrategy = new UrnBasedNamingStrategy();
+            this.functionName = functionName;
         }
 
         @Override
         public boolean test(Path path) {
-            var isUrn = namingStrategy.provideNameAndDiscriminator(null, read(path))
-                    .isPresent();
-            if (!isUrn) {
-                log.info("{} is not a valid MEF URN schema. skipping", path);
+            var toInclude = namingStrategy.provideNameAndDiscriminator(null, read(path))
+                    .map(n -> {
+                        String disc = n.getDiscriminatorValue();
+                        return (disc.endsWith("all") || disc.endsWith(functionName));
+                    })
+                    .orElse(false);
+            if (!toInclude) {
+                log.info("{} is not a valid MEF URN for {} function. skipping", path, functionName);
             }
-            return isUrn;
+            return toInclude;
         }
 
         private JsonNode read(Path path) {

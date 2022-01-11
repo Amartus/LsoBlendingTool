@@ -56,6 +56,7 @@ public abstract class AbstractCmd {
             name = {"-d", "--spec-root-dir"},
             title = "root directory for specificatins to be blended",
             description = "sets of product specification root directory for specifications you would like to integrate")
+    @Once
     protected String productsRootDir = ".";
 
     @Option(name = {"-i", "--input-spec"}, title = "spec file",
@@ -82,12 +83,12 @@ public abstract class AbstractCmd {
     protected boolean strict = false;
 
     @Option(name = {"-all", "--all-schemas"},
-            title = "take all schemas from repository for blending",
+            title = "take all schemas for given function",
             hidden = true,
-            description = "Take all schemas from specification root directory"
+            description = "Take all schemas from specification root directory for a given function. By convention use only URN with that function or 'all'"
     )
     @RequireOnlyOne(tag = "allOrSelective")
-    protected boolean allSchemas = false;
+    protected String allSchemas = null;
 
     protected Map<String, Schema> toProductSpecifications() {
         return toSchemaPaths(blendingSchemas())
