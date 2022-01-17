@@ -20,6 +20,7 @@ package com.amartus.sonata.blender;
 import com.amartus.sonata.blender.cmd.Blend;
 import com.amartus.sonata.blender.cmd.Generate;
 import com.github.rvesse.airline.Cli;
+import com.github.rvesse.airline.builder.CliBuilder;
 import com.github.rvesse.airline.help.Help;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,21 +33,26 @@ import java.util.Locale;
 public class Blender {
     private static final Logger log = LoggerFactory.getLogger(Blender.class);
 
+    public static CliBuilder<Runnable> builder() {
+        String version = "1.7";
+        return Cli.<Runnable>builder("sonata-blending-tool-cli")
+                .withDescription(
+                        String.format(
+                                Locale.ROOT,
+                                "Sonata Blending Tool CLI (version %s).",
+                                version))
+                .withDefaultCommand(Help.class)
+                .withCommands(
+                        Generate.class,
+                        Blend.class,
+                        Help.class
+                );
+    }
+
     public static void main(String[] args) {
-        String version = "1.2";
-        var builder =
-                Cli.<Runnable>builder("sonata-blending-tool-cli")
-                        .withDescription(
-                                String.format(
-                                        Locale.ROOT,
-                                        "Sonata Blending Tool CLI (version %s).",
-                                        version))
-                        .withDefaultCommand(Help.class)
-                        .withCommands(
-                                Generate.class,
-                                Blend.class,
-                                Help.class
-                        );
+
+        var builder = builder();
+
 
         try {
             if (args.length == 0) {

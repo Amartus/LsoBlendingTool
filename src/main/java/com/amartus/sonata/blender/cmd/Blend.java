@@ -55,6 +55,22 @@ public class Blend extends AbstractCmd implements Runnable {
             description = "sort data types in a lexical order")
     @Once
     private boolean sorted = false;
+
+    @Option(
+            name = {"-o", "--output"},
+            title = "Output file name",
+            description = "Output file name. Throws exception if file exists. If it is not provided output file is 'output-spec'.modified"
+    )
+    @Once
+    private String outputFile;
+
+    @Option(
+            name = {"-f", "--force-override"},
+            title = "Override output if exist"
+    )
+    @Once
+    private boolean forceWrite = false;
+
     private UrnPredicate urnPredicate;
 
     @Override
@@ -99,10 +115,10 @@ public class Blend extends AbstractCmd implements Runnable {
         var mapper = SerializationUtils.yamlMapper();
 
         try {
-            File output = new File(this.spec + ".modified");
+            File output = output();
             log.info("Writing to {}", output);
             mapper.writeValue(new FileWriter(output), openAPI);
-        } catch (IOException e) {
+        } catch (IOException | IllegalArgumentException e) {
             throw new IllegalStateException("Error writing file", e);
         }
     }
@@ -135,12 +151,6 @@ public class Blend extends AbstractCmd implements Runnable {
                     .filter(toInclude)
                     .map(p -> root.relativize(p).toString())
                     .collect(Collectors.toList());
-
-//            return Files.list(root)
-//                    .filter(f -> !Files.isDirectory(f))
-//                    .filter(toInclude)
-//                    .map(p -> root.relativize(p).toString())
-//                    .collect(Collectors.toList());
         } catch (IOException e) {
             throw new IllegalArgumentException(String.format("Cannot read %s", root), e);
         }
@@ -151,6 +161,19 @@ public class Blend extends AbstractCmd implements Runnable {
             urnPredicate = new UrnPredicate(functionName);
         }
         return urnPredicate;
+    }
+
+    private File output() {
+        var fileName = Path.of(outputFile != null ? outputFile : this.spec + ".modified");
+        if (Files.exists(fileName) && !forceWrite) {
+            log.warn("Output: {} exists. please add force flag if you want to override it.", fileName.toAbsolutePath());
+            throw new IllegalArgumentException("Cannot override " + fileName);
+        }
+        if (Files.isDirectory(fileName)) {
+            log.warn("Output {} is a directory", fileName.toAbsolutePath());
+            throw new IllegalArgumentException(fileName + " is a directory");
+        }
+        return fileName.toFile();
     }
 
     private static class UrnPredicate implements Predicate<Path> {
