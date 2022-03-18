@@ -62,6 +62,9 @@ OPTIONS
             sets of product specification root directory for specifications you
             would like to integrate
 
+            This option may occur a maximum of 1 times
+
+
         -e <files encoding>, -encoding <files encoding>
             encoding used to read API and product definitions. By default
             system encoding is used
@@ -96,10 +99,10 @@ Assuming you have a valid spring generator configuration
 (as explained [here](https://openapi-generator.tech/docs/generators/spring)) in `configurations/spring`
 
 ```shell script
-java -jar .\blender-1.6-SNAPSHOT.jar generate -i .\productApi\serviceability\offeringQualification\productOfferingQualificationManagement.api.yaml \
+java -jar blender-1.x.jar generate -i .\productApi\serviceability\offeringQualification\productOfferingQualificationManagement.api.yaml \
      -c ./configurations/spring/spring-server.yaml \
      -d .\productSchema\carrierEthernet \ 
-     -b accessEline\inventory\accessElineOvc.yaml -b carrierEthernetOperatorUni\inventory\carrierEthernetOperatorUni.yaml
+     -b accessEline\accessElineOvc.yaml -b carrierEthernetOperatorUni\carrierEthernetOperatorUni.yaml
 ```
 
 ## Tool `blend` command synopsis
@@ -116,8 +119,9 @@ SYNOPSIS
                 [ {-b | --blending-schema} <specifications to be blend (integrate) in>... ]
                 [ {-d | --spec-root-dir} <root directory for specificatins to be blended> ]
                 [ {-e | -encoding} <files encoding> ]
-                [ {-i | --input-spec} <spec file> ]
+                [ {-f | --force-override} ] [ {-i | --input-spec} <spec file> ]
                 [ {-m | --model-name} <model to be augmented> ]
+                [ {-o | --output} <Output file name> ]
                 [ {-p | --product-spec} <product specifications>... ]
                 [ --sorted ] [ --strict-mode ]
 
@@ -136,9 +140,18 @@ OPTIONS
             sets of product specification root directory for specifications you
             would like to integrate
 
+            This option may occur a maximum of 1 times
+
+
         -e <files encoding>, -encoding <files encoding>
             encoding used to read API and product definitions. By default
             system encoding is used
+
+        -f, --force-override
+
+
+            This option may occur a maximum of 1 times
+
 
         -i <spec file>, --input-spec <spec file>
             location of the OpenAPI spec, as URL or file (required)
@@ -149,6 +162,13 @@ OPTIONS
         -m <model to be augmented>, --model-name <model to be augmented>
             Model which will be hosting product specific extensions (e.g.
             MEFProductConfiguration)
+
+        -o <Output file name>, --output <Output file name>
+            Output file name. Throws exception if file exists. If it is not
+            provided output file is 'output-spec'.modified
+
+            This option may occur a maximum of 1 times
+
 
         -p <product specifications>, --product-spec <product specifications>
             sets of product specification you would like to integrate
@@ -175,9 +195,10 @@ OPTIONS
 Assumption is that this command is run from root of the Sonata SDK directory and jar file is in the same directory.
 
 ```shell script
-java -jar .\blender-1.6-SNAPSHOT.jar blend -i .\productApi\serviceability\offeringQualification\productOfferingQualificationManagement.api.yaml \
+java -jar blender-1.x.jar blend -i .\productApi\serviceability\offeringQualification\productOfferingQualificationManagement.api.yaml \
      -d .\productSchema\carrierEthernet \ 
-     -b accessEline\inventory\accessElineOvc.yaml -b carrierEthernetOperatorUni\inventory\carrierEthernetOperatorUni.yaml
+     -b accessEline\accessElineOvc.yaml \ 
+     -b carrierEthernetOperatorUni\carrierEthernetOperatorUni.yaml
 ```
 
 ### Usage example for Legato
@@ -185,7 +206,8 @@ java -jar .\blender-1.6-SNAPSHOT.jar blend -i .\productApi\serviceability\offeri
 Assumption is that this command is run from root of the Legato SDK directory and jar file is in the same directory.
 
 ```shell script
- java -jar blender-1.6.jar blend -d spec/legato/carrierEthernet -m MefServiceConfiguration  \
+ java -jar blender-1.x.jar blend -d spec/legato/carrierEthernet -m MefServiceConfiguration  \
      -i ./api/legato/serviceProvisioning/serviceOrdering/v4/serviceOrderingApi.openapi.yaml \ 
-    -b carrierEthernetOvc.yaml -b carrierEthernetSubscriberUni.yaml
+    -b carrierEthernetOvc.yaml \ 
+    -b carrierEthernetSubscriberUni.yaml
 ```
