@@ -28,6 +28,8 @@ import io.swagger.v3.oas.models.media.ComposedSchema;
 import io.swagger.v3.oas.models.media.ObjectSchema;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.parser.OpenAPIResolver;
+import io.swagger.v3.parser.core.models.ParseOptions;
+import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -164,10 +166,23 @@ public class ProductSpecReader {
         return schema.get$ref().replace("#/components/schemas/", "");
     }
 
-    private Map<String, Schema<?>> resolve(ComposedSchema schema) {
+    protected Map<String, Schema<?>> resolve(ComposedSchema schema) {
         var parentFile = schemaPath.toString();
-        OpenAPIResolver r = new OpenAPIResolver(new OpenAPI().schema(KEY, schema), null, parentFile);
-        return r.resolve().getComponents().getSchemas()
+        var options = new ParseOptions();
+        options.setResolve(true);
+        options.setValidateExternalRefs(true);
+
+        OpenAPIResolver r = new OpenAPIResolver(new OpenAPI().schema(KEY, schema), null, parentFile, null, options);
+        var res = new SwaggerParseResult().messages(new ArrayList<>());
+        r.resolve(res);
+
+        if (!res.getMessages().isEmpty()) {
+            log.warn("Potential issues found while resolving definitions from file {}:\n\t{}",
+                    parentFile, String.join("\n\t", res.getMessages()));
+        }
+
+        return res.getOpenAPI()
+                .getComponents().getSchemas()
                 .entrySet().stream()
                 .map(e -> Map.entry(e.getKey(), (Schema<?>) e.getValue()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));

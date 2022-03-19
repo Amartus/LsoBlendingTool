@@ -32,7 +32,6 @@ SYNOPSIS
                 [ {-e | -encoding} <files encoding> ]
                 [ {-i | --input-spec} <spec file> ]
                 [ {-m | --model-name} <model to be augmented> ]
-                [ {-p | --product-spec} <product specifications>... ]
                 [ --strict-mode ]
 
 OPTIONS
@@ -79,12 +78,6 @@ OPTIONS
             Model which will be hosting product specific extensions (e.g.
             MEFProductConfiguration)
 
-        -p <product specifications>, --product-spec <product specifications>
-            sets of product specification you would like to integrate
-
-            This option is part of the group 'allOrSelective' from which only
-            one option may be specified
-
 
         --strict-mode
             Verify that model to be augmented allows for extension (contains
@@ -122,7 +115,6 @@ SYNOPSIS
                 [ {-f | --force-override} ] [ {-i | --input-spec} <spec file> ]
                 [ {-m | --model-name} <model to be augmented> ]
                 [ {-o | --output} <Output file name> ]
-                [ {-p | --product-spec} <product specifications>... ]
                 [ --sorted ] [ --strict-mode ]
 
 OPTIONS
@@ -168,13 +160,6 @@ OPTIONS
             provided output file is 'output-spec'.modified
 
             This option may occur a maximum of 1 times
-
-
-        -p <product specifications>, --product-spec <product specifications>
-            sets of product specification you would like to integrate
-
-            This option is part of the group 'allOrSelective' from which only
-            one option may be specified
 
 
         --sorted

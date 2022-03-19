@@ -39,7 +39,7 @@ public abstract class AbstractCmd {
     private static final Logger log = LoggerFactory.getLogger(AbstractCmd.class);
     @Option(
             name = {"-p", "--product-spec"},
-            title = "product specifications",
+            title = "deprecated. product specifications",
             description = "sets of product specification you would like to integrate")
     @RequireOnlyOne(tag = "allOrSelective")
     @Deprecated
