@@ -25,9 +25,8 @@
     <groupId>com.amartus.sonata</groupId>
     <artifactId>blender</artifactId>
     <description>SonataBlendingTool</description>
-    <version>1.7.1</version>
+    <version>1.7.2</version>
     <properties>
-        <!--        <openapi.generator.version>4.3.1</openapi.generator.version>-->
         <openapi.generator.version>5.4.0</openapi.generator.version>
     </properties>
     <dependencies>
