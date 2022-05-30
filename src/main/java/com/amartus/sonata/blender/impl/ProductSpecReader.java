@@ -21,13 +21,15 @@ import com.amartus.sonata.blender.impl.specifications.FragmentBasedNamingStrateg
 import com.amartus.sonata.blender.impl.specifications.PathBaseNamingStrategy;
 import com.amartus.sonata.blender.impl.specifications.ProductSpecificationNamingStrategy;
 import com.amartus.sonata.blender.impl.specifications.UrnBasedNamingStrategy;
+import com.amartus.sonata.blender.parser.DeserializerProvider;
+import com.amartus.sonata.blender.parser.OpenAPIResolver;
+import com.amartus.sonata.blender.parser.ResolverCache;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.parser.util.DeserializationUtils;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.media.ComposedSchema;
 import io.swagger.v3.oas.models.media.ObjectSchema;
 import io.swagger.v3.oas.models.media.Schema;
-import io.swagger.v3.parser.OpenAPIResolver;
 import io.swagger.v3.parser.core.models.ParseOptions;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import org.slf4j.Logger;
@@ -123,7 +125,7 @@ public class ProductSpecReader {
         return resolved;
     }
 
-    private String schemaName() {
+    private String  schemaName() {
         return schemaPath.getFileName().toString() + fragment;
     }
 
@@ -148,12 +150,14 @@ public class ProductSpecReader {
     }
 
     private ProductSpecificationNamingStrategy.NameAndDiscriminator toName() throws IOException {
-        Path file = schemaPath;
+        final Path file = schemaPath;
+        final JsonNode tree = DeserializationUtils.deserializeIntoTree(Files.readString(file, charset), file.toString());
 
-        var content = Files.readString(file, charset);
-        JsonNode tree = DeserializationUtils.deserializeIntoTree(content, file.toString());
-
-        var uri = URI.create(schemaName()).resolve(fragment);
+        final var uri =
+                Optional.ofNullable(fragment)
+                    .flatMap(f -> f.isBlank() ? Optional.empty() : Optional.of(f))
+                    .map(f -> URI.create(schemaName()).resolve(f))
+                    .orElse(URI.create(schemaName()));
 
         //TODO consider passing only tree fragment referenced by URI fragment
         return namingStrategies.stream()
@@ -171,8 +175,10 @@ public class ProductSpecReader {
         var options = new ParseOptions();
         options.setResolve(true);
         options.setValidateExternalRefs(true);
+        var oas = new OpenAPI().schema(KEY, schema);
+        var cache = new ResolverCache(oas, parentFile, options, new DeserializerProvider());
 
-        OpenAPIResolver r = new OpenAPIResolver(new OpenAPI().schema(KEY, schema), null, parentFile, null, options);
+        OpenAPIResolver r = new OpenAPIResolver(new OpenAPI().schema(KEY, schema), cache, null);
         var res = new SwaggerParseResult().messages(new ArrayList<>());
         r.resolve(res);
 

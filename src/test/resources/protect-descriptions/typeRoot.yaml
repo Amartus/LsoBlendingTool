@@ -1,0 +1,24 @@
+---
+$id: http://example.com/typeRoot
+$schema: http://json-schema.org/draft-07/schema#
+title: typeRoot title
+description: typeRoot description
+type: object
+properties:
+  propertyA:
+    $ref: "#/definitions/TypeA"
+    description: Description of property A
+  propertyB:
+    description: Description of property B
+    type: string
+  propertyC:
+    description: Description of property C
+    $ref: "#/definitions/TypeC"
+  propertyD:
+    description: Description of property D
+    $ref: "typeChild.yaml"
+definitions:
+  TypeC:
+    description: Type C description
+  TypeA:
+     description: Type A description
