@@ -19,11 +19,10 @@
 package com.amartus.sonata.blender.cmd;
 
 import com.amartus.sonata.blender.impl.MergeSchemasAction;
-import com.amartus.sonata.blender.impl.postprocess.*;
-import com.amartus.sonata.blender.impl.specifications.UrnBasedNamingStrategy;
+import com.amartus.sonata.blender.impl.postprocess.ComposedPostprocessor;
+import com.amartus.sonata.blender.impl.postprocess.SortTypesByName;
+import com.amartus.sonata.blender.impl.util.PathResolver;
 import com.amartus.sonata.blender.impl.util.SerializationUtils;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.rvesse.airline.annotations.Command;
 import com.github.rvesse.airline.annotations.Option;
 import com.github.rvesse.airline.annotations.restrictions.Once;
@@ -42,11 +41,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-@Command(name = "blend", description = "Blend Product Specifications into OpenAPI.")
-public class Blend extends AbstractCmd implements Runnable {
+@Command(name = "blend", description = "Blend Product / Service Specifications into OpenAPI.")
+public class Blend extends AbstractBlend implements Runnable {
     private static final Logger log = LoggerFactory.getLogger(Blend.class);
 
     @Option(
@@ -71,7 +69,7 @@ public class Blend extends AbstractCmd implements Runnable {
     @Once
     private boolean forceWrite = false;
 
-    private UrnPredicate urnPredicate;
+
 
     @Override
     public void run() {
@@ -83,7 +81,7 @@ public class Blend extends AbstractCmd implements Runnable {
         }
         productSpecifications = List.of();
 
-        validateProductSpecs(blendedSchema);
+        validateProductSpecs();
         OpenAPI openAPI;
         try {
             openAPI = readApi();
@@ -101,13 +99,7 @@ public class Blend extends AbstractCmd implements Runnable {
                 .target(openAPI)
                 .execute();
 
-        new RemoveSuperflousTypeDeclarations().accept(openAPI);
-        new PropertyEnumExternalize().accept(openAPI);
-        new ComposedPropertyToType().accept(openAPI);
-        new SingleEnumToDiscriminatorValue().accept(openAPI);
-        new ConvertOneOfToAllOffInheritance().accept(openAPI);
-        new UpdateDiscriminatorMapping().accept(openAPI);
-        new ConstrainDiscriminatorValueWithEnum().accept(openAPI);
+        new ComposedPostprocessor().accept(openAPI);
         if (sorted) {
             new SortTypesByName().accept(openAPI);
         }
@@ -121,6 +113,10 @@ public class Blend extends AbstractCmd implements Runnable {
         } catch (IOException | IllegalArgumentException e) {
             throw new IllegalStateException("Error writing file", e);
         }
+    }
+
+    private List<String> findAllProductSpecifications(String allSchemas) {
+        return new PathResolver(productsRootDir).findAllProductSpecifications(allSchemas);
     }
 
     private OpenAPI readApi() {
@@ -141,28 +137,6 @@ public class Blend extends AbstractCmd implements Runnable {
         }
     }
 
-    private List<String> findAllProductSpecifications(String functionName) {
-        var root = Path.of(productsRootDir);
-        var toInclude = getUrnPredicate(functionName);
-        try {
-
-            return Files.walk(root)
-                    .filter(Files::isRegularFile)
-                    .filter(toInclude)
-                    .map(p -> root.relativize(p).toString())
-                    .collect(Collectors.toList());
-        } catch (IOException e) {
-            throw new IllegalArgumentException(String.format("Cannot read %s", root), e);
-        }
-    }
-
-    private UrnPredicate getUrnPredicate(String functionName) {
-        if (urnPredicate == null) {
-            urnPredicate = new UrnPredicate(functionName);
-        }
-        return urnPredicate;
-    }
-
     private File output() {
         var fileName = Path.of(outputFile != null ? outputFile : this.spec + ".modified");
         if (Files.exists(fileName) && !forceWrite) {
@@ -174,48 +148,6 @@ public class Blend extends AbstractCmd implements Runnable {
             throw new IllegalArgumentException(fileName + " is a directory");
         }
         return fileName.toFile();
-    }
-
-    private static class UrnPredicate implements Predicate<Path> {
-        private final ObjectMapper json;
-        private final ObjectMapper yaml;
-        private final UrnBasedNamingStrategy namingStrategy;
-        private final String functionName;
-
-        private UrnPredicate(String functionName) {
-            this.json = SerializationUtils.jsonMapper();
-            this.yaml = SerializationUtils.yamlMapper();
-            this.namingStrategy = new UrnBasedNamingStrategy();
-            this.functionName = functionName;
-        }
-
-        @Override
-        public boolean test(Path path) {
-            var toInclude = namingStrategy.provideNameAndDiscriminator(null, read(path))
-                    .map(n -> {
-                        String disc = n.getDiscriminatorValue();
-                        return (disc.endsWith("all") || disc.endsWith(functionName));
-                    })
-                    .orElse(false);
-            if (!toInclude) {
-                log.info("{} is not a valid MEF URN for {} function. skipping", path, functionName);
-            }
-            return toInclude;
-        }
-
-        private JsonNode read(Path path) {
-            File file = path.toFile();
-            try {
-                return json.readTree(file);
-
-            } catch (IOException e) {
-                try {
-                    return yaml.readTree(file);
-                } catch (IOException ioException) {
-                    return null;
-                }
-            }
-        }
     }
 }
 

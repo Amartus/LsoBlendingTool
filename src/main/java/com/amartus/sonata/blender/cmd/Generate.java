@@ -39,7 +39,7 @@ import java.util.Map;
  * @author bartosz.michalik@amartus.com
  */
 @Command(name = "generate", description = "Generate code using configuration.")
-public class Generate extends AbstractCmd implements Runnable {
+public class Generate extends AbstractBlend implements Runnable {
     private static final Logger log = LoggerFactory.getLogger(Generate.class);
     @Option(
             name = {"-c", "--config"},
@@ -61,7 +61,7 @@ public class Generate extends AbstractCmd implements Runnable {
         log.debug("Will generate artifacts using '{}' configuration", configFile);
 
 
-        validateProductSpecs(productSpecifications);
+        validateProductSpecs();
 
         Map<String, Schema> productSchemas = toProductSpecifications();
 

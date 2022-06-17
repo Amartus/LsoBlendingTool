@@ -19,6 +19,7 @@ package com.amartus.sonata.blender;
 
 import com.amartus.sonata.blender.cmd.Blend;
 import com.amartus.sonata.blender.cmd.Generate;
+import com.amartus.sonata.blender.cmd.Merge;
 import com.amartus.sonata.blender.impl.util.TextUtils;
 import com.github.rvesse.airline.Cli;
 import com.github.rvesse.airline.builder.CliBuilder;
@@ -40,7 +41,7 @@ public class Blender {
     private static final Logger log = LoggerFactory.getLogger(Blender.class);
 
     public static CliBuilder<Runnable> builder() {
-        String version = "1.7";
+        String version = "1.8";
         return Cli.<Runnable>builder("sonata-blending-tool-cli")
                 .withDescription(
                         String.format(
@@ -51,6 +52,7 @@ public class Blender {
                 .withCommands(
                         Generate.class,
                         Blend.class,
+                        Merge.class,
                         Help.class
                 );
     }

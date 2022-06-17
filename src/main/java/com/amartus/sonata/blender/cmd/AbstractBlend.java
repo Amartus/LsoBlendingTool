@@ -20,6 +20,7 @@ package com.amartus.sonata.blender.cmd;
 
 import com.amartus.sonata.blender.impl.ProductSpecReader;
 import com.amartus.sonata.blender.impl.util.Pair;
+import com.amartus.sonata.blender.impl.util.PathResolver;
 import com.github.rvesse.airline.annotations.Option;
 import com.github.rvesse.airline.annotations.restrictions.Once;
 import com.github.rvesse.airline.annotations.restrictions.RequireOnlyOne;
@@ -35,8 +36,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public abstract class AbstractCmd {
-    private static final Logger log = LoggerFactory.getLogger(AbstractCmd.class);
+public abstract class AbstractBlend {
+    private static final Logger log = LoggerFactory.getLogger(AbstractBlend.class);
     @Option(
             name = {"-p", "--product-spec"},
             title = "deprecated. product specifications",
@@ -54,8 +55,8 @@ public abstract class AbstractCmd {
 
     @Option(
             name = {"-d", "--spec-root-dir"},
-            title = "root directory for specificatins to be blended",
-            description = "sets of product specification root directory for specifications you would like to integrate")
+            title = "root directory for specifications to be blended",
+            description = "root directory for specifications.")
     @Once
     protected String productsRootDir = ".";
 
@@ -100,37 +101,13 @@ public abstract class AbstractCmd {
     }
 
     protected Stream<Pair<Path, String>> toSchemaPaths(Stream<String> path) {
-
-        final var rootPath = Path.of(productsRootDir).toAbsolutePath();
-        return path
-                .map(this::pathWithFragment)
-                .map(p -> Pair.of(toPath(p.first(), rootPath), p.second()));
+        return new PathResolver(productsRootDir).toSchemaPaths(path);
     }
-
-    private Path toPath(String path, Path root) {
-        var p = Path.of(path);
-        if (p.isAbsolute()) {
-            return p;
-        }
-        return root.resolve(p);
-    }
-
-    protected Pair<String, String> pathWithFragment(String path) {
-        var result = path.split("#");
-        if (result.length > 2) {
-            throw new IllegalArgumentException(path + " is not valid");
-        }
-        if (result.length == 2) {
-            return Pair.of(result[0], "#" + result[1]);
-        }
-        return Pair.of(result[0], "");
-    }
-
     protected Stream<String> blendingSchemas() {
         return Stream.concat(productSpecifications.stream(), blendedSchema.stream());
     }
 
-    protected void validateProductSpecs(List<String> blendingSchemas) {
+    protected void validateProductSpecs() {
         var incorrectFilesExists = toSchemaPaths(blendingSchemas())
                 .map(Pair::first)
                 .filter(p -> !Files.isRegularFile(p))

@@ -18,7 +18,7 @@
 
 package com.amartus.sonata.blender.impl;
 
-import com.amartus.sonata.blender.cmd.AbstractCmd;
+import com.amartus.sonata.blender.cmd.AbstractBlend;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.media.Discriminator;
 import io.swagger.v3.oas.models.media.Schema;
@@ -31,7 +31,7 @@ import java.util.Optional;
 
 public class MergeSchemasAction {
     protected static final String DISCRIMINATOR_NAME = "@type";
-    private static final Logger log = LoggerFactory.getLogger(AbstractCmd.class);
+    private static final Logger log = LoggerFactory.getLogger(AbstractBlend.class);
     private final String modelToAugment;
     private final boolean strict;
     private Map<String, Schema> schemasToInject = Map.of();

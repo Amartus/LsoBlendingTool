@@ -175,6 +175,7 @@ OPTIONS
             if possible.        
 ```
 
+
 ### Usage example for Sonata
 
 Assumption is that this command is run from root of the Sonata SDK directory and jar file is in the same directory.
@@ -195,4 +196,56 @@ Assumption is that this command is run from root of the Legato SDK directory and
      -i ./api/legato/serviceProvisioning/serviceOrdering/v4/serviceOrderingApi.openapi.yaml \ 
     -b carrierEthernetOvc.yaml \ 
     -b carrierEthernetSubscriberUni.yaml
+```
+
+## Tool `merge` command synopsis
+
+Merge command generates an OAS 3 definition that is a minimal OAS file including `components/schemas` only
+with schema definition for all selected `blending-schema`s.
+
+```shell script
+SYNOPSIS
+        sonata-blending-tool-cli merge
+                [ {-b | --blending-schema} <specifications to be blend (integrate) in>... ]
+                [ {-d | --spec-root-dir} <root directory for specifications> ]
+                [ {-f | --force-override} ]
+                [ {-m | --model-name} <model to be augmented> ]
+                {-o | --output} <Output file name> [ --sorted ]
+
+OPTIONS
+        -b <specifications to be blend (integrate) in>, --blending-schema
+        <specifications to be blend (integrate) in>
+            sets of specifications (e.g. specific product or service
+            definitions) you would like to integrate
+
+            This option is part of the group 'allOrSelective' from which only
+            one option may be specified
+
+
+        -d <root directory for specifications>, --spec-root-dir <root directory for specifications>
+
+
+            This option may occur a maximum of 1 times
+
+
+        -f, --force-override
+
+
+            This option may occur a maximum of 1 times
+
+
+        -m <model to be augmented>, --model-name <model to be augmented>
+            Model which will be hosting product specific extensions (e.g.
+            MEFProductConfiguration)
+
+        -o <Output file name>, --output <Output file name>
+            Output file name. Throws exception if file exists.
+
+            This option may occur a maximum of 1 times
+
+
+        --sorted
+            sort data types in a lexical order
+
+            This option may occur a maximum of 1 times
 ```
