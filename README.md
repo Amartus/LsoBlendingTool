@@ -15,7 +15,7 @@ mvn clean package
 Project requires Java runtime in version 11 or greater.
 
 ```shell script
-java -jar blender-1.x.jar <commang> [args]
+java -jar blender-1.x.jar <command> [args]
 ```
 
 ## Tool `generate` command synopsis
@@ -248,4 +248,27 @@ OPTIONS
             sort data types in a lexical order
 
             This option may occur a maximum of 1 times
+```
+
+### Usage example for Sonata
+
+Assumption is that this command is run from any directory. `-d` parameter points to root of the schema directory.
+In this example this directory hosts
+
+```shell script
+java -jar blender-1.x.jar merge \
+     -d ${rootSchemaDirectory} \ 
+     -b accessEline\accessElineOvc.yaml \ 
+     -b carrierEthernetOperatorUni\carrierEthernetOperatorUni.yaml
+```
+
+### Usage example for Legato
+
+Assumption is that this command is run from the schema directory. You could also use `-d` parameter to point to
+different directory as in the example above.
+
+```shell script
+java -jar blender-1.x.jar merge \
+    -b carrierEthernetOvc.yaml \ 
+    -b carrierEthernetSubscriberUni.yaml
 ```
