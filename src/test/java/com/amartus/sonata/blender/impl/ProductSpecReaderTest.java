@@ -19,6 +19,8 @@
 package com.amartus.sonata.blender.impl;
 
 import com.amartus.Utils;
+import io.swagger.v3.oas.models.media.ComposedSchema;
+import io.swagger.v3.oas.models.media.ObjectSchema;
 import io.swagger.v3.oas.models.media.Schema;
 import org.junit.jupiter.api.Test;
 
@@ -31,6 +33,7 @@ import java.util.stream.Stream;
 
 import static com.amartus.sonata.blender.impl.ProductSpecReader.DISCRIMINATOR_VALUE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class ProductSpecReaderTest {
 
@@ -69,6 +72,19 @@ class ProductSpecReaderTest {
                 .readSchemas();
         singleRootSchema(schemas);
         assertEquals(6, schemas.size());
+    }
+
+    @Test
+    public void testProtectDescriptions() {
+        final var name = "typeRoot.yaml";
+        var dirPath = Utils.toPath("protect-descriptions");
+        var schemas = new ProductSpecReader("testToAugment", dirPath.resolve(name))
+                .readSchemas();
+        singleRootSchema(schemas);
+        var root = (ObjectSchema) ((ComposedSchema) schemas.get(name)).getAllOf().get(1);
+        root.getProperties().forEach((k,v) -> {
+            assertNotNull(v.getDescription());
+        });
     }
 
     private void singleRootSchema(Map<String, Schema<?>> allSchemas) {
