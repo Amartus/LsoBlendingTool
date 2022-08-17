@@ -81,7 +81,7 @@ public class ProductSpecReader {
         log.info("Resolving {}", this.schemaPath);
         OpenAPI api = new OpenAPI();
 
-        ComposedSchema schema = new ComposedSchema()
+        var schema = new ComposedSchema()
                 .addAllOfItem(new Schema<>().$ref("#/components/schemas/" + modelToAugment))
                 .addAllOfItem(new Schema<>().$ref(schemaName()));
         api.schema(KEY, schema);
@@ -170,7 +170,7 @@ public class ProductSpecReader {
         return schema.get$ref().replace("#/components/schemas/", "");
     }
 
-    protected Map<String, Schema<?>> resolve(ComposedSchema schema) {
+    protected Map<String, Schema<?>> resolve(Schema schema) {
         var parentFile = schemaPath.toString();
         var options = new ParseOptions();
         options.setResolve(true);
