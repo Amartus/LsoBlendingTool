@@ -120,6 +120,7 @@
                         <configuration>
                             <minimizeJar>false</minimizeJar>
                             <createDependencyReducedPom>true</createDependencyReducedPom>
+                            <outputFile>${project.build.directory}/blender-all-in.jar</outputFile>
                             <dependencyReducedPomLocation>
                                 ${java.io.tmpdir}/dependency-reduced-pom.xml
                             </dependencyReducedPomLocation>
