@@ -18,31 +18,18 @@
 
 package com.amartus.sonata.blender.impl.yaml;
 
+import com.amartus.sonata.blender.impl.yaml.mixns.ExampleSetFlagIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.databind.BeanDescription;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationConfig;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.BeanSerializerModifier;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import io.swagger.v3.core.jackson.mixin.ComponentsMixin;
-import io.swagger.v3.core.jackson.mixin.DateSchemaMixin;
-import io.swagger.v3.core.jackson.mixin.ExtensionsMixin;
-import io.swagger.v3.core.jackson.mixin.OpenAPIMixin;
-import io.swagger.v3.core.jackson.mixin.OperationMixin;
+import io.swagger.v3.core.jackson.mixin.*;
 import io.swagger.v3.core.util.DeserializationModule;
-import io.swagger.v3.oas.models.Components;
-import io.swagger.v3.oas.models.ExternalDocumentation;
-import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.oas.models.Operation;
-import io.swagger.v3.oas.models.PathItem;
-import io.swagger.v3.oas.models.Paths;
+import io.swagger.v3.oas.models.*;
 import io.swagger.v3.oas.models.callbacks.Callback;
 import io.swagger.v3.oas.models.examples.Example;
 import io.swagger.v3.oas.models.headers.Header;
@@ -51,12 +38,7 @@ import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.links.Link;
 import io.swagger.v3.oas.models.links.LinkParameter;
-import io.swagger.v3.oas.models.media.DateSchema;
-import io.swagger.v3.oas.models.media.Encoding;
-import io.swagger.v3.oas.models.media.EncodingProperty;
-import io.swagger.v3.oas.models.media.MediaType;
-import io.swagger.v3.oas.models.media.Schema;
-import io.swagger.v3.oas.models.media.XML;
+import io.swagger.v3.oas.models.media.*;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.parameters.RequestBody;
 import io.swagger.v3.oas.models.responses.ApiResponse;
@@ -158,6 +140,10 @@ public class YamlMapperFactory {
         sourceMixins.put(XML.class, ExtensionsMixin.class);
         sourceMixins.put(Schema.class, ExtensionsMixin.class);
         sourceMixins.put(DateSchema.class, DateSchemaMixin.class);
+
+        sourceMixins.put(Parameter.class, ExampleSetFlagIgnore.class);
+        sourceMixins.put(Schema.class, ExampleSetFlagIgnore.class);
+        sourceMixins.put(MediaType.class, ExampleSetFlagIgnore.class);
         return sourceMixins;
     }
 }

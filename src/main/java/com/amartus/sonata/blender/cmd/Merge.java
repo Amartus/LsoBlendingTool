@@ -22,6 +22,7 @@ import com.amartus.sonata.blender.impl.MergeSchemasAction;
 import com.amartus.sonata.blender.impl.ProductSpecReader;
 import com.amartus.sonata.blender.impl.postprocess.ComposedPostprocessor;
 import com.amartus.sonata.blender.impl.postprocess.SortTypesByName;
+import com.amartus.sonata.blender.impl.util.IdSchemaResolver;
 import com.amartus.sonata.blender.impl.util.PathResolver;
 import com.amartus.sonata.blender.impl.util.SerializationUtils;
 import com.github.rvesse.airline.annotations.Command;
@@ -151,7 +152,11 @@ public class Merge implements Runnable {
     protected Map<String, Schema> toProductSpecifications() {
         var resolver = new PathResolver(schemasRoot);
         if (allSchemas != null) {
-            blendedSchema = resolver.findAllProductSpecifications(allSchemas);
+            blendedSchema = new IdSchemaResolver(allSchemas)
+                    .findProductSpecifications(Path.of(schemasRoot))
+                    .stream()
+                    .map(Path::toString)
+                    .collect(Collectors.toList());
         }
 
         var paths = resolver.toSchemaPaths(blendedSchema.stream());

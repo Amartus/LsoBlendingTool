@@ -21,7 +21,7 @@ package com.amartus.sonata.blender.cmd;
 import com.amartus.sonata.blender.impl.MergeSchemasAction;
 import com.amartus.sonata.blender.impl.postprocess.ComposedPostprocessor;
 import com.amartus.sonata.blender.impl.postprocess.SortTypesByName;
-import com.amartus.sonata.blender.impl.util.PathResolver;
+import com.amartus.sonata.blender.impl.util.IdSchemaResolver;
 import com.amartus.sonata.blender.impl.util.SerializationUtils;
 import com.github.rvesse.airline.annotations.Command;
 import com.github.rvesse.airline.annotations.Option;
@@ -116,7 +116,10 @@ public class Blend extends AbstractBlend implements Runnable {
     }
 
     private List<String> findAllProductSpecifications(String allSchemas) {
-        return new PathResolver(productsRootDir).findAllProductSpecifications(allSchemas);
+        return new IdSchemaResolver(allSchemas)
+                .findProductSpecifications(Path.of(productsRootDir)).stream()
+                .map(Path::toString)
+                .collect(Collectors.toList());
     }
 
     private OpenAPI readApi() {
