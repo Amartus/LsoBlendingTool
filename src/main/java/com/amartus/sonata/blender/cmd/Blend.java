@@ -20,11 +20,13 @@ package com.amartus.sonata.blender.cmd;
 
 import com.amartus.sonata.blender.impl.MergeSchemasAction;
 import com.amartus.sonata.blender.impl.postprocess.ComposedPostprocessor;
+import com.amartus.sonata.blender.impl.postprocess.SecureEndpointsWithOAuth2;
 import com.amartus.sonata.blender.impl.postprocess.SortTypesByName;
 import com.amartus.sonata.blender.impl.util.IdSchemaResolver;
 import com.amartus.sonata.blender.impl.util.SerializationUtils;
 import com.github.rvesse.airline.annotations.Command;
 import com.github.rvesse.airline.annotations.Option;
+import com.github.rvesse.airline.annotations.restrictions.AllowedEnumValues;
 import com.github.rvesse.airline.annotations.restrictions.Once;
 import io.swagger.parser.OpenAPIParser;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -48,6 +50,13 @@ public class Blend extends AbstractBlend implements Runnable {
     private static final Logger log = LoggerFactory.getLogger(Blend.class);
 
     @Option(
+            name = {"-f", "--force-override"},
+            description = "Override output if exist"
+    )
+    @Once
+    private boolean forceWrite = false;
+
+    @Option(
             name = {"--sorted"},
             title = "sort data types",
             description = "sort data types in a lexical order")
@@ -61,15 +70,13 @@ public class Blend extends AbstractBlend implements Runnable {
     )
     @Once
     private String outputFile;
-
     @Option(
-            name = {"-f", "--force-override"},
-            title = "Override output if exist"
+            name = {"--path-security"},
+            description = "mechanism to use to secure API paths. default disabled"
+
     )
-    @Once
-    private boolean forceWrite = false;
-
-
+    @AllowedEnumValues(PathSecurity.class)
+    private PathSecurity pathSecurity = PathSecurity.disabled;
 
     @Override
     public void run() {
@@ -104,6 +111,10 @@ public class Blend extends AbstractBlend implements Runnable {
             new SortTypesByName().accept(openAPI);
         }
 
+        if (pathSecurity == PathSecurity.oauth2) {
+            new SecureEndpointsWithOAuth2().accept(openAPI);
+        }
+
         var mapper = SerializationUtils.yamlMapper();
 
         try {
@@ -113,6 +124,11 @@ public class Blend extends AbstractBlend implements Runnable {
         } catch (IOException | IllegalArgumentException e) {
             throw new IllegalStateException("Error writing file", e);
         }
+    }
+
+
+    private enum PathSecurity {
+        oauth2, disabled
     }
 
     private List<String> findAllProductSpecifications(String allSchemas) {
