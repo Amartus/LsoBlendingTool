@@ -15,7 +15,7 @@ mvn clean package
 Project requires Java runtime in version 11 or greater.
 
 ```shell script
-java -jar blender-1.x.jar <command> [args]
+java -jar blender-all-in.jar <command> [args]
 ```
 
 ## Tool `generate` command synopsis
@@ -92,7 +92,7 @@ Assuming you have a valid spring generator configuration
 (as explained [here](https://openapi-generator.tech/docs/generators/spring)) in `configurations/spring`
 
 ```shell script
-java -jar blender-1.x.jar generate -i .\productApi\serviceability\offeringQualification\productOfferingQualificationManagement.api.yaml \
+java -jar blender-all-in.jar generate -i .\productApi\serviceability\offeringQualification\productOfferingQualificationManagement.api.yaml \
      -c ./configurations/spring/spring-server.yaml \
      -d .\productSchema\carrierEthernet \ 
      -b accessEline\accessElineOvc.yaml -b carrierEthernetOperatorUni\carrierEthernetOperatorUni.yaml
@@ -110,12 +110,14 @@ NAME
 SYNOPSIS
         sonata-blending-tool-cli blend
                 [ {-b | --blending-schema} <specifications to be blend (integrate) in>... ]
-                [ {-d | --spec-root-dir} <root directory for specificatins to be blended> ]
+                [ {-d | --spec-root-dir} <root directory for specifications to be blended> ]
                 [ {-e | -encoding} <files encoding> ]
                 [ {-f | --force-override} ] [ {-i | --input-spec} <spec file> ]
                 [ {-m | --model-name} <model to be augmented> ]
                 [ {-o | --output} <Output file name> ]
-                [ --sorted ] [ --strict-mode ]
+                [ {-p | --product-spec} <deprecated. product specifications>... ]
+                [ --path-security <pathSecurity> ] [ --sorted ]
+                [ --strict-mode ]
 
 OPTIONS
         -b <specifications to be blend (integrate) in>, --blending-schema
@@ -127,10 +129,9 @@ OPTIONS
             one option may be specified
 
 
-        -d <root directory for specificatins to be blended>, --spec-root-dir
-        <root directory for specificatins to be blended>
-            sets of product specification root directory for specifications you
-            would like to integrate
+        -d <root directory for specifications to be blended>, --spec-root-dir
+        <root directory for specifications to be blended>
+            root directory for specifications.
 
             This option may occur a maximum of 1 times
 
@@ -140,7 +141,7 @@ OPTIONS
             system encoding is used
 
         -f, --force-override
-
+            Override output if exist
 
             This option may occur a maximum of 1 times
 
@@ -162,6 +163,20 @@ OPTIONS
             This option may occur a maximum of 1 times
 
 
+        -p <deprecated. product specifications>, --product-spec <deprecated. product specifications>
+            sets of product specification you would like to integrate
+
+            This option is part of the group 'allOrSelective' from which only
+            one option may be specified
+
+
+        --path-security <pathSecurity>
+            mechanism to use to secure API paths. default disabled
+
+            This options value is restricted to the following set of values:
+                oauth2
+                disabled
+
         --sorted
             sort data types in a lexical order
 
@@ -172,7 +187,7 @@ OPTIONS
             Verify that model to be augmented allows for extension (contains
             discriminator definition).
             If strict-mode is `false` tool will add a discriminator on the fly
-            if possible.        
+            if possible.      
 ```
 
 
@@ -181,7 +196,7 @@ OPTIONS
 Assumption is that this command is run from root of the Sonata SDK directory and jar file is in the same directory.
 
 ```shell script
-java -jar blender-1.x.jar blend -i .\productApi\serviceability\offeringQualification\productOfferingQualificationManagement.api.yaml \
+java -jar blender-all-in.jar blend -i .\productApi\serviceability\offeringQualification\productOfferingQualificationManagement.api.yaml \
      -d .\productSchema\carrierEthernet \ 
      -b accessEline\accessElineOvc.yaml \ 
      -b carrierEthernetOperatorUni\carrierEthernetOperatorUni.yaml
@@ -192,7 +207,7 @@ java -jar blender-1.x.jar blend -i .\productApi\serviceability\offeringQualifica
 Assumption is that this command is run from root of the Legato SDK directory and jar file is in the same directory.
 
 ```shell script
- java -jar blender-1.x.jar blend -d spec/legato/carrierEthernet -m MefServiceConfiguration  \
+ java -jar blender-all-in.jar blend -d spec/legato/carrierEthernet -m MefServiceConfiguration  \
      -i ./api/legato/serviceProvisioning/serviceOrdering/v4/serviceOrderingApi.openapi.yaml \ 
     -b carrierEthernetOvc.yaml \ 
     -b carrierEthernetSubscriberUni.yaml
@@ -256,7 +271,7 @@ Assumption is that this command is run from any directory. `-d` parameter points
 In this example this directory hosts
 
 ```shell script
-java -jar blender-1.x.jar merge \
+java -jar blender-all-in.jar merge \
      -d ${rootSchemaDirectory} \ 
      -b accessEline\accessElineOvc.yaml \ 
      -b carrierEthernetOperatorUni\carrierEthernetOperatorUni.yaml
@@ -268,7 +283,7 @@ Assumption is that this command is run from the schema directory. You could also
 different directory as in the example above.
 
 ```shell script
-java -jar blender-1.x.jar merge \
+java -jar blender-all-in.jar merge \
     -b carrierEthernetOvc.yaml \ 
     -b carrierEthernetSubscriberUni.yaml
 ```
