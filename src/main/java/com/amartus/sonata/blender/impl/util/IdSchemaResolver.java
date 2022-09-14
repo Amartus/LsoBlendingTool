@@ -43,9 +43,12 @@ public class IdSchemaResolver {
     }
 
     public List<Path> findProductSpecifications(Path rootPath) {
-        try (Stream<Path> walk = Files.walk(rootPath)) {
-            return walk.filter(Files::isRegularFile)
-                    .filter(urnPredicate)
+        var walker = new FileWalker<>(Files::isRegularFile, p -> urnPredicate.test(p));
+
+        try (Stream<Pair<Path, Boolean>> allFiles = walker.walk(rootPath)) {
+            return allFiles
+                    .filter(Pair::second)
+                    .map(Pair::first)
                     .map(Path::toAbsolutePath)
                     .collect(Collectors.toList());
         } catch (IOException e) {
