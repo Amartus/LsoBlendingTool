@@ -18,21 +18,19 @@
 
 package com.amartus.sonata.blender.cmd;
 
-import com.amartus.sonata.blender.impl.MergeSchemasAction;
+import com.amartus.sonata.blender.impl.BlendingService;
 import com.amartus.sonata.blender.impl.postprocess.ComposedPostprocessor;
 import com.amartus.sonata.blender.impl.postprocess.SecureEndpointsWithOAuth2;
 import com.amartus.sonata.blender.impl.postprocess.SortTypesByName;
 import com.amartus.sonata.blender.impl.util.IdSchemaResolver;
+import com.amartus.sonata.blender.impl.util.OasUtils;
 import com.amartus.sonata.blender.impl.util.SerializationUtils;
 import com.github.rvesse.airline.annotations.Command;
 import com.github.rvesse.airline.annotations.Option;
 import com.github.rvesse.airline.annotations.restrictions.AllowedEnumValues;
 import com.github.rvesse.airline.annotations.restrictions.Once;
-import io.swagger.parser.OpenAPIParser;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.media.Schema;
-import io.swagger.v3.parser.core.models.ParseOptions;
-import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,7 +89,7 @@ public class Blend extends AbstractBlend implements Runnable {
         validateProductSpecs();
         OpenAPI openAPI;
         try {
-            openAPI = readApi();
+            openAPI = OasUtils.readOas(this.spec);
         } catch (Exception e) {
             return;
         }
@@ -101,21 +99,22 @@ public class Blend extends AbstractBlend implements Runnable {
         log.debug("Injecting {} schemas from {} product spec descriptions",
                 schemasToInject.size(), blendedSchema.size());
 
-        new MergeSchemasAction(modelToAugment, strict)
-                .schemasToInject(schemasToInject)
-                .target(openAPI)
-                .execute();
+        var blending = new BlendingService(openAPI, schemasToInject)
+                .modelToAugment(modelToAugment)
+                .strict(strict)
+                .postprocessor(new ComposedPostprocessor());
 
-        new ComposedPostprocessor().accept(openAPI);
         if (sorted) {
-            new SortTypesByName().accept(openAPI);
+            blending.postprocessor(new SortTypesByName());
         }
 
         if (pathSecurity == PathSecurity.oauth2) {
-            new SecureEndpointsWithOAuth2().accept(openAPI);
+            blending.postprocessor(new SecureEndpointsWithOAuth2());
         }
 
         var mapper = SerializationUtils.yamlMapper();
+
+        openAPI = blending.blend();
 
         try {
             File output = output();
@@ -136,24 +135,6 @@ public class Blend extends AbstractBlend implements Runnable {
                 .findProductSpecifications(Path.of(productsRootDir)).stream()
                 .map(Path::toString)
                 .collect(Collectors.toList());
-    }
-
-    private OpenAPI readApi() {
-        var options = new ParseOptions();
-//        options.setResolveFully(true);
-        options.setResolve(true);
-        try {
-            SwaggerParseResult result = new OpenAPIParser().readLocation(this.spec, List.of(), options);
-            var api = result.getOpenAPI();
-            if (api == null) {
-                log.warn("Location {} does not contain a valid schema", this.spec);
-                throw new RuntimeException(String.format("%s is not a valid schema", this.spec));
-            }
-            return api;
-        } catch (RuntimeException e) {
-            log.warn("Cannot read schema from {}", this.spec);
-            throw e;
-        }
     }
 
     private File output() {
