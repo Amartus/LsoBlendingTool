@@ -25,9 +25,9 @@
     <groupId>com.amartus.sonata</groupId>
     <artifactId>blender</artifactId>
     <description>SonataBlendingTool</description>
-    <version>1.9.0</version>
+    <version>1.9.1</version>
     <properties>
-        <openapi.generator.version>5.4.0</openapi.generator.version>
+        <openapi.generator.version>6.0.1</openapi.generator.version>
     </properties>
     <dependencies>
         <!-- https://mvnrepository.com/artifact/org.openapitools/openapi-generator -->
@@ -82,6 +82,13 @@
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-params</artifactId>
             <version>5.9.0</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.networknt</groupId>
+            <artifactId>json-schema-validator</artifactId>
+            <version>1.0.73</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

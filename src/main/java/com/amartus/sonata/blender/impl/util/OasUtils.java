@@ -18,9 +18,15 @@
 
 package com.amartus.sonata.blender.impl.util;
 
+import io.swagger.parser.OpenAPIParser;
+import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.media.ComposedSchema;
 import io.swagger.v3.oas.models.media.ObjectSchema;
 import io.swagger.v3.oas.models.media.Schema;
+import io.swagger.v3.parser.core.models.ParseOptions;
+import io.swagger.v3.parser.core.models.SwaggerParseResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.util.Collection;
@@ -32,6 +38,7 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 public interface OasUtils {
+    Logger log = LoggerFactory.getLogger(OasUtils.class);
 
     static String toSchemaName(String ref) {
         var frag = URI.create(ref).getFragment();
@@ -45,8 +52,26 @@ public interface OasUtils {
         return "#/components/schemas/" + name;
     }
 
+    static OpenAPI readOas(String path) {
+        log.debug("Reading {}", path);
+        var options = new ParseOptions();
+//        options.setResolveFully(true);
+        options.setResolve(true);
+        try {
+            SwaggerParseResult result = new OpenAPIParser().readLocation(path, List.of(), options);
+            var api = result.getOpenAPI();
+            if (api == null) {
+                log.warn("Location {} does not contain a valid schema", path);
+                throw new RuntimeException(String.format("%s is not a valid schema", path));
+            }
+            return api;
+        } catch (RuntimeException e) {
+            log.warn("Cannot read schema from {}", path);
+            throw e;
+        }
+    }
 
-    static boolean isReferencingSchema(Schema schema) {
+    static boolean isReferencingSchema(Schema<?> schema) {
         Predicate<List<Schema>> onlyReferences = x -> {
             var refs = Helpers.safeConvert.andThen(Helpers.references)
                     .apply(x);
@@ -54,9 +79,9 @@ public interface OasUtils {
         };
         if (schema instanceof ComposedSchema) {
             return
-                    onlyReferences.test(((ComposedSchema) schema).getAllOf())
-                            || onlyReferences.test(((ComposedSchema) schema).getOneOf())
-                            || onlyReferences.test(((ComposedSchema) schema).getAnyOf());
+                    onlyReferences.test(schema.getAllOf())
+                            || onlyReferences.test(schema.getOneOf())
+                            || onlyReferences.test(schema.getAnyOf());
 
         }
         return false;

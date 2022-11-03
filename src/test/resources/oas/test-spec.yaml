@@ -1,0 +1,453 @@
+openapi: 3.0.1
+info:
+  description: desc
+  title: Product Ordering Management
+  version: 8.0.0-RC
+servers:
+  - url: 'https://{serverBase}/[ath]'
+    variables:
+      serverBase:
+        default: example.com
+        description: The base URL.
+tags:
+  - name: someTag
+
+paths:
+  /somePath:
+    get:
+      description: desc
+      operationId: list
+      parameters:
+        - description: State
+          in: query
+          name: state
+          schema:
+            enum:
+              - a
+              - b
+              - c
+            type: string
+      responses:
+        '200':
+          content:
+            application/json;charset=utf-8:
+              schema:
+                items:
+                  $ref: '#/components/schemas/SomePayload'
+                type: array
+          description:
+            'OK. (https://tools.ietf.org/html/rfc7231#section-6.3.1)'
+          headers:
+            X-Pagination-Throttled:
+              description: >
+                Used to indicate that result page was throttled to maximum
+                possible size  and there are additional results that can be
+                fetched
+              schema:
+                type: boolean
+            X-Total-Count:
+              description: >
+                The total number of matching items. E.g. if there are 50
+                matching items in total, but the request has offset=10 and
+                limit=10, then the X-Total-Count is 50.
+              schema:
+                type: integer
+            X-Result-Count:
+              description: The number of items included in the response
+              schema:
+                type: integer
+        '400':
+          content:
+            application/json;charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/Error400'
+          description: Bad Request
+      summary: List or find ProductOrder objects
+      tags:
+        - productOrder
+    post:
+      description: This operation creates a ProductOrder entity.
+      operationId: createProductOrder
+      parameters:
+        - description: >-
+            The unique identifier of the organization that is acting as the a
+            Buyer. MUST be specified in the request only when the requester
+            represents more than one Buyer.
+
+            Reference: MEF 57.2 (Sn 9.18)
+          in: query
+          name: buyerId
+          schema:
+            type: string
+        - description: >-
+            The unique identifier of the organization that is acting as the
+            Seller. MUST be specified in the request only when the responding
+            entity represents more than one Seller.
+
+            Reference: MEF 57.2 (Sn 9.18)
+          in: query
+          name: sellerId
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json;charset=utf-8:
+            schema:
+              $ref: '#/components/schemas/ProductOrder_Create'
+        description: The ProductOrder to be created
+        required: true
+      responses:
+        '201':
+          content:
+            application/json;charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/ProductOrder'
+          description:
+            'Created (https://tools.ietf.org/html/rfc7231#section-6.3.2)'
+        '400':
+          content:
+            application/json;charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/Error400'
+          description: Bad Request
+        '401':
+          content:
+            application/json;charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/Error401'
+          description: Unauthorized
+        '403':
+          content:
+            application/json;charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/Error403'
+          description: Forbidden
+        '422':
+          content:
+            application/json;charset=utf-8:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Error422'
+                type: array
+          description:
+            Unprocessable entity due to the business validation problems
+        '500':
+          content:
+            application/json;charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/Error500'
+          description: Internal Server Error
+      summary: Creates a ProductOrder
+      tags:
+        - productOrder
+      x-codegen-request-body-name: productOrder
+components:
+  schemas:
+    Duration:
+      description: A Duration in a given unit of time e.g. 3 hours, or 5 days.
+      properties:
+        amount:
+          description: Duration (number of seconds, minutes, hours, etc.)
+          type: integer
+        units:
+          $ref: '#/components/schemas/TimeUnit'
+          description: Time unit type
+      required:
+        - amount
+        - units
+      type: object
+    Error:
+      description: >
+        Standard Class used to describe API response error Not intended to be
+        used directly. The `code` in the HTTP header is used as a discriminator
+        for the type of error returned in runtime.
+      properties:
+        message:
+          description: >-
+            Text that provides mode details and corrective actions related to
+            the error. This can be shown to a client user.
+          type: string
+        reason:
+          description: >-
+            Text that explains the reason for the error. This can be shown to a
+            client user.
+          maxLength: 255
+          type: string
+        referenceError:
+          description: URL pointing to documentation describing the error
+          format: uri
+          type: string
+      required:
+        - reason
+      type: object
+    Error400:
+      allOf:
+        - $ref: '#/components/schemas/Error'
+        - properties:
+            code:
+              $ref: '#/components/schemas/Error400Code'
+              description: Some desc
+          required:
+            - code
+          type: object
+      description:
+        Bad Request. (https://tools.ietf.org/html/rfc7231#section-6.5.1)
+    Error400Code:
+      description: >-
+        One of the following error codes: x y z
+      enum:
+        - x
+        - y
+        - z
+      type: string
+    Placeholder:
+      description: >-
+        Extenision placeholder
+      discriminator:
+        propertyName: '@type'
+      properties:
+        '@type':
+          description: >-
+            The name of the type, defined in the JSON schema specified  above,
+          type: string
+      required:
+        - '@type'
+      type: object
+
+    State:
+      description: |
+        Possible values
+      enum:
+        - a
+        - b
+        - c
+      type: string
+    SomePayload:
+      description: >-
+        Structure to define GET without id response. A list of productOrder
+        matching request criteria. Provides Product order summary view.
+      properties:
+        date:
+          description: >-
+            Identifies the date
+          format: date-time
+          type: string
+
+        externalId:
+          description: >-
+            ID given by xyz
+          type: string
+        id:
+          description: >-
+            Unique identifier
+          type: string
+        duration:
+          $ref: '#/components/schemas/Duration'
+        state:
+          $ref: '#/components/schemas/State'
+          description: >-
+            The states as defined by TMF622 and extended to meet MEF
+            requirements. These states are used to convey the Product Order
+            status during the lifecycle of the Product Order.
+        configuration:
+          $ref: "#/components/schemas/Placeholder"
+      required:
+        - id
+        - orderDate
+        - orderVersion
+        - state
+      type: object
+    ProductOrder_Update:
+      description:
+        A request initiated by the Buyer to update Product Order and/or Product
+      properties:
+        externalId:
+          description:
+            An identifier for this Product Order within the Buyer's enterprise.
+          type: string
+        note:
+          description: >
+            Free form text to clarify or explain the Product Order. Only new
+            notes can be entered. The Buyer and Seller cannot modify an
+            existing Note. The Buyer creates a Note when creating the Product
+            Order or when updating it. The Seller may add notes at any time.
+          items:
+            $ref: '#/components/schemas/Note'
+          type: array
+        orderVersion:
+          description: >-
+            The version of the Product Order. The `orderVersion` attribute
+            cannot be updated. It is used only to identify the version of the
+            Product Order that the Buyer wants to update. If there is a
+            mismatch with the Seller's system, the Seller will reject the
+            request with an error response.
+          type: string
+        productOrderItem:
+          description: |
+            Order Item attributes that may be updated
+          items:
+            $ref: '#/components/schemas/MEFProductOrderItem_Update'
+          type: array
+        projectId:
+          description: >-
+            An identifier that is used to group Product Orders that is
+            important to the Buyer. A projectId can be used to relate multiple
+            Product Orders together.
+          type: string
+        relatedContactInformation:
+          description: >
+            Contact information of an individual or organization playing a role
+            in this context. The Buyer is allowed to update the Product Order
+            Contact: role=productOrderContact;
+          items:
+            $ref: '#/components/schemas/RelatedContactInformation'
+          minItems: 1
+          type: array
+      required:
+        - orderVersion
+      type: object
+    ProductRelationship:
+      description: >-
+        A relationship to an existing Product. The requirements for usage for
+        given Product are described in the Product Specification.
+      properties:
+        href:
+          description: >-
+            Hyperlink to the product in Seller's inventory that is referenced
+            Hyperlink MAY be used when providing a response by the Seller
+            Hyperlink MUST be ignored by the Seller in case it is provided by
+            the Buyer in a request
+          type: string
+        id:
+          description: unique identifier of the related Product
+          type: string
+        relationshipType:
+          description: >
+            Specifies the type (nature) of the relationship to the related
+            Product. The nature of required relationships varies for Products
+            of different types. For example, a UNI or ENNI Product may not have
+            any relationships, but an Access E-Line may have two mandatory
+            relationships (related to the UNI on one end and the ENNI on the
+            other). More complex Products such as multipoint IP or Firewall
+            Products may have more complex relationships. As a result, the
+            allowed and mandatory `relationshipType` values are defined in the
+            Product Specification.
+          type: string
+      required:
+        - id
+        - relationshipType
+      type: object
+    RelatedContactInformation:
+      description: |
+        Contact information of an individual or organization playing a role for
+        this Order Item. The rule for mapping a represented attribute value to a
+        `role` is to use the _lowerCamelCase_ pattern e.g. 
+        - Buyer Order Item Contact: `role=buyerOrderItemContact` 
+        - Buyer Implementation Contact: `role=buyerImplementationContact` 
+        - Buyer Technical Contact: `role=buyerTechnicalContact`
+      properties:
+        emailAddress:
+          description: Email address
+          type: string
+        name:
+          description: Name of the contact
+          type: string
+        number:
+          description: Phone number
+          type: string
+        numberExtension:
+          description: Phone number extension
+          type: string
+        organization:
+          description: The organization or company that the contact belongs to
+          type: string
+        postalAddress:
+          $ref: '#/components/schemas/FieldedAddress'
+          description: >-
+            Identifies the postal address of the person or office to be
+            contacted.
+        role:
+          description: A role the party plays in a given context.
+          type: string
+      required:
+        - emailAddress
+        - name
+        - number
+        - role
+      type: object
+    RelatedPlaceRefOrValue:
+      description:
+        Place defines the places where the product order must be done.
+      discriminator:
+        mapping:
+          FieldedAddress: '#/components/schemas/FieldedAddress'
+          FormattedAddress: '#/components/schemas/FormattedAddress'
+          GeographicAddressLabel: '#/components/schemas/GeographicAddressLabel'
+          GeographicAddressRef: '#/components/schemas/GeographicAddressRef'
+          GeographicSiteRef: '#/components/schemas/GeographicSiteRef'
+          MEFGeographicPoint: '#/components/schemas/MEFGeographicPoint'
+        propertyName: '@type'
+      properties:
+        '@schemaLocation':
+          description: >-
+            A URI to a JSON-Schema file that defines additional attributes and
+            relationships. May be used to define additional related place
+            types. Usage of this attribute must be agreed upon between Buyer
+            and Seller.
+          format: uri
+          type: string
+        '@type':
+          description: >
+            This field is used as a discriminator and is used between different
+            place representations. This type might discriminate for additional
+            related place as defined in '@schemaLocation'.
+          type: string
+        role:
+          description: Role of this place
+          type: string
+      required:
+        - '@type'
+        - role
+      type: object
+    TerminationError:
+      description: >-
+        This indicates an error that caused an Item to be terminated. The code
+        and propertyPath should be used like in Error422.
+      properties:
+        code:
+          $ref: '#/components/schemas/Error422Code'
+          description: |
+            One of the following error codes:
+              - missingProperty: The property the Seller has expected is not present in the payload
+              - invalidValue: The property has an incorrect value
+              - invalidFormat: The property value does not comply with the expected value format
+              - referenceNotFound: The object referenced by the property cannot be identified in the Seller system
+              - unexpectedProperty: Additional property, not expected by the Seller has been provided
+              - tooManyRecords: the number of records to be provided in the response exceeds the Seller's threshold.
+              - otherIssue: Other problem was identified (detailed information provided in a reason)
+        propertyPath:
+          description: >
+            A pointer to a particular property of the payload that caused the
+            validation issue. It is highly recommended that this property
+            should be used.
+
+            Defined using JavaScript Object Notation (JSON) Pointer
+            (https://tools.ietf.org/html/rfc6901).
+          type: string
+        value:
+          description: Text to describe the reason of the termination.
+          type: string
+      type: object
+    TimeUnit:
+      description: |
+        Represents a unit of time.
+        Reference: MEF 57.2 (Sn 9.22)
+      enum:
+        - calendarMonths
+        - calendarDays
+        - calendarHours
+        - calendarMinutes
+        - businessDays
+        - businessHours
+        - businessMinutes
+      type: string
