@@ -1,15 +1,14 @@
 name: Java CI with Maven
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "master", "test-action" ]
     tags:
       - "v*"
 
 jobs:
-  build:
+  release:
 
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v3
       - name: Set up JDK 11
@@ -20,16 +19,12 @@ jobs:
           cache: maven
       - name: Build with Maven
         run: mvn -B package --file pom.xml
-  release:
-    name: "Release"
-    runs-on: ubuntu-latest
-
-    steps:
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          prerelease: false
+          prerelease: true
+          automatic_release_tag: "latest"
           title: "Release $GITHUB_REF_NAME"
           files: |
-            LICENSE.txt
-            blender-all-in.jar
+            LICENSE
+            target/blender-all-in.jar
