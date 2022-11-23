@@ -25,9 +25,10 @@
     <groupId>com.amartus.sonata</groupId>
     <artifactId>blender</artifactId>
     <description>SonataBlendingTool</description>
-    <version>1.9.2-SNAPSHOT</version>
+    <version>1.9.2</version>
     <properties>
         <openapi.generator.version>6.0.1</openapi.generator.version>
+        <jackson.version>2.14.0</jackson.version>
     </properties>
     <dependencies>
         <!-- https://mvnrepository.com/artifact/org.openapitools/openapi-generator -->
@@ -55,22 +56,22 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.2.11</version>
+            <version>1.4.5</version>
         </dependency>
         <dependency>
             <groupId>io.swagger.parser.v3</groupId>
             <artifactId>swagger-parser-v3</artifactId>
-            <version>2.1.1</version>
+            <version>2.1.8</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
-            <version>2.13.3</version>
+            <version>${jackson.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-yaml</artifactId>
-            <version>2.13.3</version>
+            <version>${jackson.version}</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>

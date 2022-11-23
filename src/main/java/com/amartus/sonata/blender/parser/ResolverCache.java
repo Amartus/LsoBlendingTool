@@ -59,7 +59,7 @@ public class ResolverCache extends io.swagger.v3.parser.ResolverCache {
     private Set<String> resolveValidationMessages;
     private final ParseOptions parseOptions;
     private final DeserializerProvider provider;
-
+    protected boolean openapi31;
 
     /*
      * a map that stores original external references, and their associated renamed
@@ -164,7 +164,7 @@ public class ResolverCache extends io.swagger.v3.parser.ResolverCache {
             if (parseOptions.isValidateExternalRefs()) {
                 result = deserializeFragment(tree, expectedType, file, "/");
             } else {
-                result = DeserializationUtils.deserialize(contents, file, expectedType);
+                result = DeserializationUtils.deserialize(contents, file, expectedType, openapi31);
             }
             resolutionCache.put(ref, result);
             if (deserializationUtilResult.getMessages() != null) {
@@ -178,7 +178,16 @@ public class ResolverCache extends io.swagger.v3.parser.ResolverCache {
         //a definition path is defined, meaning we need to "dig down" through the JSON tree and get the desired entity
         String[] jsonPathElements = definitionPath.split("/");
         for (String jsonPathElement : jsonPathElements) {
-            tree = tree.get(unescapePointer(jsonPathElement));
+            if (tree.isArray()) {
+                try {
+                    tree = tree.get(Integer.valueOf(jsonPathElement));
+                } catch (NumberFormatException numberFormatException) {
+                    //
+                }
+            } else {
+                tree = tree.get(unescapePointer(jsonPathElement));
+            }
+
             //if at any point we do find an element we expect, print and error and abort
             if (tree == null) {
                 throw new RuntimeException("Could not find " + definitionPath + " in contents of " + file);
@@ -190,9 +199,9 @@ public class ResolverCache extends io.swagger.v3.parser.ResolverCache {
         } else {
             if (expectedType.equals(Schema.class)) {
                 OpenAPIDeserializer deserializer = provider.deserializer();
-                result = (T) deserializer.getSchema((ObjectNode) tree, definitionPath.replace("/", "."), null);
+                result = (T) deserializer.getSchema((ObjectNode) tree, definitionPath.replace("/", "."), new OpenAPIDeserializer.ParseResult().openapi31(openapi31));
             } else {
-                result = DeserializationUtils.deserialize(tree, file, expectedType);
+                result = DeserializationUtils.deserialize(tree, file, expectedType, openapi31);
             }
         }
         updateLocalRefs(file, result);
@@ -389,12 +398,18 @@ public class ResolverCache extends io.swagger.v3.parser.ResolverCache {
     public Map<String, Object> getResolutionCache() {
         return Collections.unmodifiableMap(resolutionCache);
     }
+
     @Override
     public Map<String, String> getExternalFileCache() {
         return Collections.unmodifiableMap(externalFileCache);
     }
+
     @Override
     public Map<String, String> getRenameCache() {
         return Collections.unmodifiableMap(renameCache);
+    }
+
+    public ParseOptions getParseOptions() {
+        return parseOptions;
     }
 }

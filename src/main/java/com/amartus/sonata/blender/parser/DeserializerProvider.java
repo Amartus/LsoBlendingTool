@@ -1,7 +1,6 @@
 package com.amartus.sonata.blender.parser;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.parser.util.OpenAPIDeserializer;
 import org.slf4j.Logger;
@@ -14,9 +13,9 @@ public class DeserializerProvider {
     static class AmartusDeserializer extends OpenAPIDeserializer {
 
         @Override
-        public Schema getSchema(ObjectNode node, String location, ParseResult result) {
+        public Schema getSchema(JsonNode node, String location, ParseResult result) {
             var schema = super.getSchema(node, location, result);
-            if(schema.get$ref() != null) {
+            if (schema.get$ref() != null) {
                 var description = Optional.ofNullable(node.get("description"))
                         .map(JsonNode::textValue);
 
