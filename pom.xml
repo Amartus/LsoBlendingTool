@@ -25,7 +25,7 @@
     <groupId>com.amartus.sonata</groupId>
     <artifactId>blender</artifactId>
     <description>SonataBlendingTool</description>
-    <version>1.9.2</version>
+    <version>1.9.3</version>
     <properties>
         <openapi.generator.version>6.0.1</openapi.generator.version>
         <jackson.version>2.14.0</jackson.version>
@@ -46,7 +46,7 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.36</version>
+            <version>2.0.5</version>
         </dependency>
         <dependency>
             <groupId>com.github.rvesse</groupId>
@@ -61,7 +61,7 @@
         <dependency>
             <groupId>io.swagger.parser.v3</groupId>
             <artifactId>swagger-parser-v3</artifactId>
-            <version>2.1.8</version>
+            <version>2.1.1</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -89,10 +89,17 @@
         <dependency>
             <groupId>com.networknt</groupId>
             <artifactId>json-schema-validator</artifactId>
-            <version>1.0.73</version>
+            <version>1.0.74</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/Amartus/LsoBlendingTool</url>
+        </repository>
+    </distributionManagement>
     <build>
         <plugins>
             <plugin>

@@ -14,7 +14,7 @@ public class SpecValidator {
     private final Supplier<JsonSchema> factory;
 
     public SpecValidator(JsonNode specification) {
-        var jsf = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V201909);
+        var jsf = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V4);
          factory = () -> jsf.getSchema(specification);
     }
     public Collection<ValidationMessage> validate(JsonNode toValidate) {
