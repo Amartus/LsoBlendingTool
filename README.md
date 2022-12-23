@@ -187,7 +187,13 @@ OPTIONS
             Verify that model to be augmented allows for extension (contains
             discriminator definition).
             If strict-mode is `false` tool will add a discriminator on the fly
-            if possible.      
+            if possible.
+            
+        --validate
+            Validate consistency of OAS definition with its 3.0.x json schema
+            definition
+
+            This option may occur a maximum of 1 times  
 ```
 
 

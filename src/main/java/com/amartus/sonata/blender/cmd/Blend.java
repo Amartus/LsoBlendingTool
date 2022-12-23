@@ -19,6 +19,7 @@
 package com.amartus.sonata.blender.cmd;
 
 import com.amartus.sonata.blender.impl.BlendingService;
+import com.amartus.sonata.blender.impl.SpecValidator;
 import com.amartus.sonata.blender.impl.postprocess.ComposedPostprocessor;
 import com.amartus.sonata.blender.impl.postprocess.SecureEndpointsWithOAuth2;
 import com.amartus.sonata.blender.impl.postprocess.SortTypesByName;
@@ -62,6 +63,13 @@ public class Blend extends AbstractBlend implements Runnable {
     private boolean sorted = false;
 
     @Option(
+            name = {"--validate"},
+            title = "validate OAS with 3.0.x schema",
+            description = "Validate consistency of OAS definition with its 3.0.x json schema definition")
+    @Once
+    private boolean validateOutput = false;
+
+    @Option(
             name = {"-o", "--output"},
             title = "Output file name",
             description = "Output file name. Throws exception if file exists. If it is not provided output file is 'output-spec'.modified"
@@ -96,7 +104,7 @@ public class Blend extends AbstractBlend implements Runnable {
 
         Map<String, Schema> schemasToInject = this.toProductSpecifications();
 
-        log.debug("Injecting {} schemas from {} product spec descriptions",
+        log.debug("Injecting {} schemas from {} payload spec descriptions",
                 schemasToInject.size(), blendedSchema.size());
 
         var blending = new BlendingService(openAPI, schemasToInject)
@@ -115,6 +123,20 @@ public class Blend extends AbstractBlend implements Runnable {
         var mapper = SerializationUtils.yamlMapper();
 
         openAPI = blending.blend();
+
+        if(validateOutput) {
+            try {
+                var issues = SpecValidator.fromClasspath().validate(openAPI);
+                if(issues.isEmpty()) {
+                    log.info("Output is compliant with the schema");
+                } else {
+                    log.warn("There are issues found in OAS schema");
+                    issues.forEach(i -> log.warn("Issue: {}", i.getMessage()));
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
 
         try {
             File output = output();
