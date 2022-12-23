@@ -89,8 +89,7 @@
         <dependency>
             <groupId>com.networknt</groupId>
             <artifactId>json-schema-validator</artifactId>
-            <version>1.0.74</version>
-            <scope>test</scope>
+            <version>1.0.76</version>
         </dependency>
     </dependencies>
     <distributionManagement>

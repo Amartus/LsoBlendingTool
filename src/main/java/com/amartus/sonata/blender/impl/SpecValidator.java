@@ -3,6 +3,7 @@ package com.amartus.sonata.blender.impl;
 import com.amartus.sonata.blender.impl.util.SerializationUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.networknt.schema.*;
+import io.swagger.v3.oas.models.OpenAPI;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -18,6 +19,12 @@ public class SpecValidator {
          factory = () -> jsf.getSchema(specification);
     }
     public Collection<ValidationMessage> validate(JsonNode toValidate) {
+        Set<ValidationMessage> validate = factory.get().validate(toValidate);
+        return validate;
+    }
+
+    public Collection<ValidationMessage> validate(OpenAPI oas) {
+        var toValidate = SerializationUtils.yamlMapper().valueToTree(oas);
         Set<ValidationMessage> validate = factory.get().validate(toValidate);
         return validate;
     }
