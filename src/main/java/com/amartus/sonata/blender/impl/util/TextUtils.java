@@ -19,9 +19,11 @@
 package com.amartus.sonata.blender.impl.util;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 public interface TextUtils {
     static List<String> splitPhrases(String subject) {
@@ -41,5 +43,11 @@ public interface TextUtils {
             }
         }
         return matchList;
+    }
+
+    static Stream<String> split(String word, char... separators) {
+        if (separators.length == 0) return Stream.of(word);
+        String regex = "[" + new String(separators) + "]";
+        return Arrays.stream(word.split(regex));
     }
 }

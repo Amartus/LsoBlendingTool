@@ -28,6 +28,7 @@ import java.util.Optional;
  */
 public interface ProductSpecificationNamingStrategy {
     Optional<NameAndDiscriminator> provideNameAndDiscriminator(URI schemaLocation, JsonNode fileContent);
+    Optional<NameAndDiscriminator> fromText(String id);
 
     class NameAndDiscriminator {
         private final String name;

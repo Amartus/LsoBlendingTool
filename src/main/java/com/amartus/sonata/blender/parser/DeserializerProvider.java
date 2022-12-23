@@ -12,19 +12,22 @@ import java.util.Optional;
 public class DeserializerProvider {
     private static final Logger log = LoggerFactory.getLogger(DeserializerProvider.class);
     static class AmartusDeserializer extends OpenAPIDeserializer {
+        private Optional<String> getByName(ObjectNode node, String name) {
+            return Optional.ofNullable(node.get(name))
+                    .map(JsonNode::textValue);
+        }
 
         @Override
         public Schema getSchema(ObjectNode node, String location, ParseResult result) {
             var schema = super.getSchema(node, location, result);
             if (schema.get$ref() != null) {
-                var description = Optional.ofNullable(node.get("description"))
-                        .map(JsonNode::textValue);
 
-                description.ifPresent(d -> {
+                getByName(node, "description").ifPresent(d -> {
                     log.debug("Adding description of a $ref property {}", schema.get$ref());
                     schema.setDescription(d);
                 });
             }
+            getByName(node,"$id").ifPresent(id -> schema.addExtension("x-try-renaming-on", id));
             return schema;
         }
     }

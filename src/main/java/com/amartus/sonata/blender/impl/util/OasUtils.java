@@ -87,11 +87,11 @@ public interface OasUtils {
         return false;
     }
 
-    static long countReferences(Schema schema) {
-        final var counter = Helpers.safeConvert.andThen(Helpers.references);
+    static long countReferences(Schema<?> schema) {
         if (schema instanceof ObjectSchema) {
             return Helpers.references.apply(Stream.of(schema));
         }
+        final var counter = Helpers.safeConvert.andThen(Helpers.references);
         if (schema instanceof ComposedSchema) {
             var cs = (ComposedSchema) schema;
             return Stream.of(

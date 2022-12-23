@@ -47,6 +47,7 @@ public abstract class PropertyPostProcessor extends AbstractPostProcessor {
         Map<String, Schema> properties = toProperties(schema)
                 .entrySet().stream()
                 .map(e -> processProperty(e.getKey(), e.getValue()))
+
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         schema.setProperties(properties);
         if (schema instanceof ComposedSchema) {

@@ -28,15 +28,11 @@ public class PathBaseNamingStrategy implements ProductSpecificationNamingStrateg
         if (schemaLocation == null) {
             return Optional.empty();
         }
-        return Optional.ofNullable(schemaLocation.getPath())
-                .map(f -> {
-                    var idx = f.lastIndexOf("/");
-                    if (idx < 0 || idx == f.length() - 1) {
-                        //TODO rethink
-                        return f;
-                    }
-                    return f.substring(idx + 1);
-                })
-                .map(n -> new NameAndDiscriminator(n, null));
+        return fromText(schemaLocation.getPath());
+    }
+
+    @Override
+    public Optional<NameAndDiscriminator> fromText(String path) {
+        return Optional.ofNullable(NameConverter.lastSegment.apply(path));
     }
 }

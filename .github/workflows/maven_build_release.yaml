@@ -1,13 +1,10 @@
 name: Java CI with Maven
 on:
   push:
-    tags:
-      - v*
+    tags: [v*]
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v3
       - name: Set up JDK 11
@@ -19,11 +16,11 @@ jobs:
       - name: Build with Maven
         run: mvn -B package --file pom.xml
       - uses: "marvinpinto/action-automatic-releases@latest"
-      with:
-        repo_token: "${{ secrets.GITHUB_TOKEN }}"
-        prerelease: false
-        draft: true
-        title: "Release $GITHUB_REF_NAME"
-        files: |
-          LICENSE
-          target/blender-all-in.jar
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          prerelease: false
+          draft: true
+          title: "Release $GITHUB_REF_NAME"
+          files: |
+            LICENSE
+            target/blender-all-in.jar
