@@ -4,6 +4,12 @@
   "properties": {
     "c1": {
       "type": "string"
+    },
+    "a1": {
+      "type": "string"
+    },
+    "d1" : {
+      "type": "integer"
     }
   }
 }

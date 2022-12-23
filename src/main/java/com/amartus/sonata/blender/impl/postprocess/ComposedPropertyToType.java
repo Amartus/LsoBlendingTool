@@ -72,7 +72,7 @@ public class ComposedPropertyToType extends PropertyPostProcessor {
         if (property instanceof ArraySchema) {
             var s = ((ArraySchema) property).getItems();
             var converted = convertProperty(name, s);
-            ((ArraySchema) property).setItems(converted.getValue());
+            property.setItems(converted.getValue());
             return Map.entry(converted.getKey(), property);
         }
 

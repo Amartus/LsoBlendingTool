@@ -29,43 +29,17 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class UrnBasedNamingStrategy implements ProductSpecificationNamingStrategy {
-    private static final Logger log = LoggerFactory.getLogger(UrnBasedNamingStrategy.class);
-
     @Override
     public Optional<NameAndDiscriminator> provideNameAndDiscriminator(URI schemaLocation, JsonNode fileContent) {
 
         return Optional.ofNullable(fileContent)
                 .map(fc -> fc.get("$id"))
                 .flatMap(i -> Optional.ofNullable(i.textValue()))
-                .flatMap(this::convert);
+                .flatMap(this::fromText);
     }
 
-    private Optional<NameAndDiscriminator> convert(String id) {
-        var uri = URI.create(id);
-
-        if ("urn".equals(uri.getScheme())) {
-            String[] segments = uri.getRawSchemeSpecificPart().split(":");
-            if ("mef".equals(segments[0]) && segments.length == 7) {
-                try {
-                    var name = toName(segments[4]);
-                    return Optional.of(new NameAndDiscriminator(name, id));
-                } catch (NullPointerException | IndexOutOfBoundsException e) {
-                    log.info("{} is not MEF urn", id);
-                }
-            }
-
-        }
-        return Optional.empty();
-    }
-
-    private String toName(String type) {
-        return split(type, '-').map(WordUtils::capitalize)
-                .collect(Collectors.joining(""));
-    }
-
-    private Stream<String> split(String word, char... separators) {
-        if (separators.length == 0) return Stream.of(word);
-        String regex = "[" + new String(separators) + "]";
-        return Arrays.stream(word.split(regex));
+    @Override
+    public Optional<NameAndDiscriminator> fromText(String id) {
+        return Optional.ofNullable(NameConverter.urn.apply(id));
     }
 }

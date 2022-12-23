@@ -17,6 +17,7 @@
  */
 package com.amartus.sonata.blender.impl.postprocess;
 
+import com.amartus.sonata.blender.impl.util.Collections;
 import com.amartus.sonata.blender.impl.util.OasUtils;
 import com.amartus.sonata.blender.impl.util.OasWrapper;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -131,7 +132,7 @@ public class ConvertOneOfToAllOffInheritance implements Consumer<OpenAPI> {
                 .map(this::convertToOneOf)
                 .filter(e -> e.getValue().stream().allMatch(isReference))
                 .map(e -> convertValues(e, v -> OasUtils.toSchemaName(v.get$ref())))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                .collect(Collections.mapCollector());
     }
 
     private Map.Entry<String, Set<Schema>> convertToOneOf(Map.Entry<String, Schema> e) {

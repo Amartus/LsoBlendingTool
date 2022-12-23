@@ -28,15 +28,11 @@ public class FragmentBasedNamingStrategy implements ProductSpecificationNamingSt
         if (schemaLocation == null) {
             return Optional.empty();
         }
-        return Optional.ofNullable(schemaLocation.getFragment())
-                .map(f -> {
-                    var idx = f.lastIndexOf("/");
-                    if (idx < 0 || idx == f.length() - 1) {
-                        //TODO rethink
-                        return f;
-                    }
-                    return f.substring(idx + 1);
-                })
-                .map(n -> new NameAndDiscriminator(n, null));
+        return fromText(schemaLocation.getFragment());
+    }
+
+    @Override
+    public Optional<NameAndDiscriminator> fromText(String fragment) {
+        return Optional.ofNullable(NameConverter.lastSegment.apply(fragment));
     }
 }
