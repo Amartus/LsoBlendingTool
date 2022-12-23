@@ -23,13 +23,10 @@ import io.swagger.v3.oas.models.media.ComposedSchema;
 import io.swagger.v3.oas.models.media.Schema;
 import org.apache.commons.lang3.text.WordUtils;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.*;
 import java.util.stream.Stream;
+
+import static com.amartus.sonata.blender.impl.util.Collections.mapCollector;
 
 /**
  * Abstract OAS API property postprocessor.
@@ -47,8 +44,7 @@ public abstract class PropertyPostProcessor extends AbstractPostProcessor {
         Map<String, Schema> properties = toProperties(schema)
                 .entrySet().stream()
                 .map(e -> processProperty(e.getKey(), e.getValue()))
-
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                .collect(mapCollector());
         schema.setProperties(properties);
         if (schema instanceof ComposedSchema) {
             schemas(((ComposedSchema) schema).getAllOf())
