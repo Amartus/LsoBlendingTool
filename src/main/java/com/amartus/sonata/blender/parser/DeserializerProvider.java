@@ -1,7 +1,6 @@
 package com.amartus.sonata.blender.parser;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.parser.util.OpenAPIDeserializer;
 import org.slf4j.Logger;
@@ -12,13 +11,13 @@ import java.util.Optional;
 public class DeserializerProvider {
     private static final Logger log = LoggerFactory.getLogger(DeserializerProvider.class);
     static class AmartusDeserializer extends OpenAPIDeserializer {
-        private Optional<String> getByName(ObjectNode node, String name) {
+        private Optional<String> getByName(JsonNode node, String name) {
             return Optional.ofNullable(node.get(name))
                     .map(JsonNode::textValue);
         }
 
         @Override
-        public Schema getSchema(ObjectNode node, String location, ParseResult result) {
+        public Schema getSchema(JsonNode node, String location, ParseResult result) {
             var schema = super.getSchema(node, location, result);
             if (schema.get$ref() != null) {
 
@@ -27,7 +26,7 @@ public class DeserializerProvider {
                     schema.setDescription(d);
                 });
             }
-            getByName(node,"$id").ifPresent(id -> schema.addExtension("x-try-renaming-on", id));
+            getByName(node, "$id").ifPresent(id -> schema.addExtension("x-try-renaming-on", id));
             return schema;
         }
     }
