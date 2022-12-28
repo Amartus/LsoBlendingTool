@@ -32,7 +32,7 @@ import java.util.stream.Stream;
 
 class UrnBasedNamingStrategyTest {
 
-    private ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper();
 
     private ProductSpecificationNamingStrategy strategy;
 

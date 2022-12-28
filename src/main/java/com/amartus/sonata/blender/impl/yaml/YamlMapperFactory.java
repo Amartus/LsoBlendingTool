@@ -20,11 +20,11 @@ package com.amartus.sonata.blender.impl.yaml;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.swagger.v3.core.util.Yaml;
+import io.swagger.v3.core.util.Yaml31;
 
 public class YamlMapperFactory {
     public ObjectMapper createYaml() {
-        var mapper = Yaml.mapper();
+        var mapper = Yaml31.mapper();
         mapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
         return mapper;
     }

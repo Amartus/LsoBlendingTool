@@ -24,6 +24,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import io.swagger.v3.core.util.Json31;
 import io.swagger.v3.oas.models.OpenAPI;
 import org.openapitools.codegen.serializer.OpenAPISerializer;
 
@@ -34,7 +35,7 @@ public abstract class SerializationUtils {
     }
 
     public static ObjectMapper jsonMapper() {
-        return enhance(new ObjectMapper());
+        return enhance(Json31.mapper());
     }
 
     private static ObjectMapper enhance(ObjectMapper mapper) {

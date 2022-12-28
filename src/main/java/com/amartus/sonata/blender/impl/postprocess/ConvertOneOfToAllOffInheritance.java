@@ -46,8 +46,8 @@ public class ConvertOneOfToAllOffInheritance implements Consumer<OpenAPI> {
 
     private static final Logger log = LoggerFactory.getLogger(ConvertOneOfToAllOffInheritance.class);
     private OasWrapper openAPI;
-    private Predicate<Schema> isReference = s -> s.get$ref() != null;
-    private Predicate<Schema> isOneOf = s -> {
+    private final Predicate<Schema> isReference = s -> s.get$ref() != null;
+    private final Predicate<Schema> isOneOf = s -> {
         if (s instanceof ComposedSchema) {
             ComposedSchema c = (ComposedSchema) s;
             return c.getOneOf() != null && !c.getOneOf().isEmpty();

@@ -18,19 +18,7 @@
 
 package com.amartus.sonata.blender.impl;
 
-import io.swagger.models.ArrayModel;
-import io.swagger.models.ComposedModel;
-import io.swagger.models.ExternalDocs;
-import io.swagger.models.Model;
-import io.swagger.models.ModelImpl;
-import io.swagger.models.Path;
-import io.swagger.models.RefModel;
-import io.swagger.models.RefPath;
-import io.swagger.models.RefResponse;
-import io.swagger.models.Response;
-import io.swagger.models.Scheme;
-import io.swagger.models.SecurityRequirement;
-import io.swagger.models.Swagger;
+import io.swagger.models.*;
 import io.swagger.models.auth.ApiKeyAuthDefinition;
 import io.swagger.models.auth.OAuth2Definition;
 import io.swagger.models.auth.SecuritySchemeDefinition;
@@ -38,38 +26,20 @@ import io.swagger.models.parameters.AbstractSerializableParameter;
 import io.swagger.models.parameters.BodyParameter;
 import io.swagger.models.parameters.RefParameter;
 import io.swagger.models.parameters.SerializableParameter;
-import io.swagger.models.properties.AbstractNumericProperty;
-import io.swagger.models.properties.ArrayProperty;
-import io.swagger.models.properties.ComposedProperty;
-import io.swagger.models.properties.FileProperty;
-import io.swagger.models.properties.MapProperty;
-import io.swagger.models.properties.ObjectProperty;
-import io.swagger.models.properties.Property;
-import io.swagger.models.properties.RefProperty;
-import io.swagger.models.properties.StringProperty;
+import io.swagger.models.properties.*;
 import io.swagger.parser.SwaggerParser;
 import io.swagger.parser.SwaggerResolver;
 import io.swagger.parser.util.SwaggerDeserializationResult;
 import io.swagger.v3.core.util.Json;
 import io.swagger.v3.core.util.PrimitiveType;
 import io.swagger.v3.core.util.Yaml;
-import io.swagger.v3.oas.models.Components;
-import io.swagger.v3.oas.models.ExternalDocumentation;
-import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
-import io.swagger.v3.oas.models.PathItem;
-import io.swagger.v3.oas.models.Paths;
+import io.swagger.v3.oas.models.*;
 import io.swagger.v3.oas.models.headers.Header;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
-import io.swagger.v3.oas.models.media.ArraySchema;
-import io.swagger.v3.oas.models.media.ComposedSchema;
-import io.swagger.v3.oas.models.media.Content;
-import io.swagger.v3.oas.models.media.Discriminator;
-import io.swagger.v3.oas.models.media.FileSchema;
-import io.swagger.v3.oas.models.media.MediaType;
-import io.swagger.v3.oas.models.media.Schema;
+import io.swagger.v3.oas.models.media.*;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.parameters.RequestBody;
 import io.swagger.v3.oas.models.responses.ApiResponse;
@@ -90,12 +60,7 @@ import io.swagger.v3.parser.util.SchemaTypeUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -103,10 +68,10 @@ import java.util.stream.Collectors;
  * with override of some private access modifiers to protected
  */
 class SwaggerConverterClone implements SwaggerParserExtension {
-    private List<String> globalConsumes = new ArrayList<>();
-    private List<String> globalProduces = new ArrayList<>();
-    private Components components = new Components();
-    private Map<String, io.swagger.models.parameters.Parameter> globalV2Parameters = new HashMap<>();
+    private final List<String> globalConsumes = new ArrayList<>();
+    private final List<String> globalProduces = new ArrayList<>();
+    private final Components components = new Components();
+    private final Map<String, io.swagger.models.parameters.Parameter> globalV2Parameters = new HashMap<>();
 
     @Override
     public SwaggerParseResult readLocation(String url, List<AuthorizationValue> auths, ParseOptions options) {
@@ -122,8 +87,7 @@ class SwaggerConverterClone implements SwaggerParserExtension {
 
     @Override
     public SwaggerParseResult readContents(String swaggerAsString, List<AuthorizationValue> auth, ParseOptions options) {
-        SwaggerDeserializationResult result = new SwaggerParser().readWithInfo(swaggerAsString, options == null ?
-                true : options.isResolve());
+        SwaggerDeserializationResult result = new SwaggerParser().readWithInfo(swaggerAsString, options == null || options.isResolve());
 
         if (options != null) {
             if (options.isResolve()) {

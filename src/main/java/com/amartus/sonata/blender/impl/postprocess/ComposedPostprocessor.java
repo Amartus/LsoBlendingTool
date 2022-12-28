@@ -31,12 +31,12 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.amartus.sonata.blender.impl.postprocess.RenameTypesPostprocessor.*;
+import static com.amartus.sonata.blender.impl.postprocess.RenameTypesPostprocessor.NameConverter;
 
 public class ComposedPostprocessor implements Consumer<OpenAPI> {
     private static final Logger log = LoggerFactory.getLogger(ComposedPostprocessor.class);
 
-    private List<Consumer<OpenAPI>> postprocessors = List.of(
+    private final List<Consumer<OpenAPI>> postprocessors = List.of(
             new RemoveSuperflousTypeDeclarations(),
             new RenameTypesPostprocessor(converter()),
             new PropertyEnumExternalize(),

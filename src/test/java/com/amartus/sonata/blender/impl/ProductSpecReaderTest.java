@@ -19,7 +19,6 @@
 package com.amartus.sonata.blender.impl;
 
 import com.amartus.Utils;
-import io.swagger.v3.oas.models.media.ComposedSchema;
 import io.swagger.v3.oas.models.media.ObjectSchema;
 import io.swagger.v3.oas.models.media.Schema;
 import org.junit.jupiter.api.Test;
@@ -81,7 +80,7 @@ class ProductSpecReaderTest {
         var schemas = new ProductSpecReader("testToAugment", dirPath.resolve(name))
                 .readSchemas();
         singleRootSchema(schemas);
-        var root = (ObjectSchema) ((ComposedSchema) schemas.get(name)).getAllOf().get(1);
+        var root = (ObjectSchema) schemas.get(name).getAllOf().get(1);
         root.getProperties().forEach((k,v) -> {
             assertNotNull(v.getDescription());
         });

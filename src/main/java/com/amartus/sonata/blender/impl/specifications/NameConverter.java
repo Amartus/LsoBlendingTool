@@ -18,7 +18,7 @@ public interface NameConverter extends Function<String, ProductSpecificationNami
     private static String toName(String type) {
         return split(type, '-').map(WordUtils::capitalize)
                 .collect(Collectors.joining(""));
-    };
+    }
 
     NameConverter urn = id -> {
         var uri = URI.create(id);

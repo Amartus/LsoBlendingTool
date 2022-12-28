@@ -36,7 +36,7 @@ import java.util.stream.Stream;
 public class IdSchemaResolver {
 
     private static final Logger log = LoggerFactory.getLogger(IdSchemaResolver.class);
-    private UrnPredicate urnPredicate;
+    private final UrnPredicate urnPredicate;
 
     public IdSchemaResolver(String functionName) {
         this.urnPredicate = new UrnPredicate(functionName);
@@ -72,7 +72,12 @@ public class IdSchemaResolver {
 
         @Override
         public boolean test(Path path) {
-            var toInclude = namingStrategy.provideNameAndDiscriminator(null, read(path))
+            var content = read(path);
+            if (content == null) {
+                log.debug("Not in json or yaml format: {}", path.toAbsolutePath().normalize());
+                return false;
+            }
+            var toInclude = namingStrategy.provideNameAndDiscriminator(null, content)
                     .map(n -> {
                         String disc = n.getDiscriminatorValue();
                         return (disc.endsWith("all") || disc.endsWith(functionName));

@@ -47,18 +47,26 @@ public class RenameTypesPostprocessor implements Consumer<OpenAPI> {
             substitutions.forEach((a,b) -> log.debug("Renaming {} to {}", a, b));
         }
 
-        var newNames = new HashSet(substitutions.values());
+        var newNames = new HashSet<>(substitutions.values());
         if(newNames.size() < substitutions.size()) {
             log.warn("Conflicting substitution names. Skipping.");
             return;
         }
-        if(schemas.keySet().stream().anyMatch(newNames::contains)) {
+        if (schemas.keySet().stream().anyMatch(newNames::contains)) {
             log.warn("Name substitution already defined in the model. Skipping.");
             return;
         }
         schemas.values().forEach(s -> Optional.ofNullable(s.getExtensions()).ifPresent(e -> e.remove(extensionName)));
         renameSchemas(openAPI);
         renameReferences(openAPI);
+        cleanupExtensions(openAPI);
+    }
+
+    private void cleanupExtensions(OpenAPI openAPI) {
+        var schemas = new OasWrapper(openAPI).schemas().values();
+        schemas.forEach(s -> {
+            Optional.ofNullable(s.getExtensions()).ifPresent(e -> e.remove(extensionName));
+        });
     }
 
     private void renameSchemas(OpenAPI oas) {
@@ -89,7 +97,6 @@ public class RenameTypesPostprocessor implements Consumer<OpenAPI> {
     private void renameReferences(OpenAPI openAPI) {
         new RenameReferences().accept(openAPI);
         new RenamePathReferences().accept(openAPI);
-        //FIXME rename refrences in response ref and  body ref
     }
 
     protected Optional<String> toName(Schema schema) {
@@ -115,16 +122,11 @@ public class RenameTypesPostprocessor implements Consumer<OpenAPI> {
             });
 
             schemas.forEach(RenameTypesPostprocessor.this::tryConverting);
-
-            openAPI.getPaths().entrySet().stream().map(Map.Entry::getValue)
-                    .flatMap(pi -> pi.readOperations().stream());
-
         }
 
         private Stream<Operation> toOperations(OpenAPI oas) {
-            return  Optional.ofNullable(oas.getPaths())
-                    .map(p -> p.entrySet().stream()
-                            .map(Map.Entry::getValue).flatMap(pi -> pi.readOperations().stream())
+            return Optional.ofNullable(oas.getPaths())
+                    .map(p -> p.values().stream().flatMap(pi -> pi.readOperations().stream())
                     ).orElse(Stream.empty());
         }
 
@@ -140,7 +142,7 @@ public class RenameTypesPostprocessor implements Consumer<OpenAPI> {
         }
 
         private Stream<Schema> schemas(Content c) {
-            if(c == null) Stream.empty();
+            if (c == null) return Stream.empty();
             return c.values().stream().map(MediaType::getSchema);
         }
 

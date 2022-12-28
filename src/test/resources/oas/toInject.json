@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "urn:mef:lso:spec:cantata-sonata:to-inject:v0.3.0:all",
+  "description": "To inject description",
+  "properties": {
+    "a": {
+      "description": "A description",
+      "type": "string"
+    },
+    "b": {
+      "description": "B description",
+      "$ref": "#/definitions/FooBar"
+    }
+  },
+  "definitions": {
+    "FooBar": {
+      "properties": {
+        "foo": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

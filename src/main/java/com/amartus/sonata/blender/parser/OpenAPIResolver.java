@@ -21,8 +21,8 @@ public class OpenAPIResolver {
     private final ComponentsProcessor componentsProcessor;
     private final PathsProcessor pathProcessor;
     private final OperationProcessor operationsProcessor;
-    private io.swagger.v3.parser.OpenAPIResolver.Settings settings;
-    private Set<String> resolveValidationMessages = new HashSet<>();
+    private final io.swagger.v3.parser.OpenAPIResolver.Settings settings;
+    private final Set<String> resolveValidationMessages = new HashSet<>();
 
     public ResolverCache getCache() {
         return cache;
@@ -32,7 +32,7 @@ public class OpenAPIResolver {
         this.openApi = openApi;
         this.settings = settings != null ? settings : new io.swagger.v3.parser.OpenAPIResolver.Settings();
         this.cache = cache;
-        componentsProcessor = new ComponentsProcessor(openApi,this.cache);
+        componentsProcessor = new ComponentsProcessor(openApi, this.cache);
         pathProcessor = new PathsProcessor(this.cache, openApi,this.settings);
         operationsProcessor = new OperationProcessor(cache, openApi);
     }

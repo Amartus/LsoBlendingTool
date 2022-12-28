@@ -19,7 +19,6 @@
 package com.amartus.sonata.blender.impl.yaml;
 
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
@@ -31,7 +30,7 @@ import java.io.IOException;
 
 public class SchemaSerializer extends JsonSerializer<Schema> implements ResolvableSerializer {
 
-    private JsonSerializer<Object> defaultSerializer;
+    private final JsonSerializer<Object> defaultSerializer;
 
     public SchemaSerializer(JsonSerializer<Object> serializer) {
         defaultSerializer = serializer;
@@ -47,7 +46,7 @@ public class SchemaSerializer extends JsonSerializer<Schema> implements Resolvab
     @Override
     public void serialize(
             Schema value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonProcessingException {
+            throws IOException {
 
         // handle ref schema serialization skipping all other props
         if (StringUtils.isBlank(value.get$ref())) {

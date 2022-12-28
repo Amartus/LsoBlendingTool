@@ -26,8 +26,8 @@ import io.swagger.v3.parser.util.RefUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
-import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -47,16 +47,16 @@ public class ResolverCache extends io.swagger.v3.parser.ResolverCache {
     private static final Pattern CALLBACKS_PATTERN = Pattern.compile("^" + RefType.COMPONENTS.getInternalPrefix() + "callbacks/(?<name>.+)");
     private static final Pattern HEADERS_PATTERN = Pattern.compile("^" + RefType.COMPONENTS.getInternalPrefix() + "headers/(?<name>.+)");
     private static final Pattern SECURITY_SCHEMES = Pattern.compile("^" + RefType.COMPONENTS.getInternalPrefix() + "securitySchemes/(?<name>.+)");
-    private static final Pattern PATHS_PATTERN = Pattern.compile("^" + RefType.PATH.getInternalPrefix() +  "(?<name>.+)");
+    private static final Pattern PATHS_PATTERN = Pattern.compile("^" + RefType.PATH.getInternalPrefix() + "(?<name>.+)");
 
     private final OpenAPI openApi;
     private final List<AuthorizationValue> auths;
     private final Path parentDirectory;
     private final String rootPath;
-    private Map<String, Object> resolutionCache = new HashMap<>();
-    private Map<String, String> externalFileCache = new HashMap<>();
-    private List<String> referencedModelKeys = new ArrayList<>();
-    private Set<String> resolveValidationMessages;
+    private final Map<String, Object> resolutionCache = new HashMap<>();
+    private final Map<String, String> externalFileCache = new HashMap<>();
+    private final List<String> referencedModelKeys = new ArrayList<>();
+    private final Set<String> resolveValidationMessages;
     private final ParseOptions parseOptions;
     private final DeserializerProvider provider;
     protected boolean openapi31;
@@ -65,7 +65,7 @@ public class ResolverCache extends io.swagger.v3.parser.ResolverCache {
      * a map that stores original external references, and their associated renamed
      * references
      */
-    private Map<String, String> renameCache = new HashMap<>();
+    private final Map<String, String> renameCache = new HashMap<>();
 
     public ResolverCache(OpenAPI openApi, List<AuthorizationValue> auths, String parentFileLocation, DeserializerProvider provider) {
         this(openApi, auths, parentFileLocation, new HashSet<>(), provider);
@@ -199,7 +199,7 @@ public class ResolverCache extends io.swagger.v3.parser.ResolverCache {
         } else {
             if (expectedType.equals(Schema.class)) {
                 OpenAPIDeserializer deserializer = provider.deserializer();
-                result = (T) deserializer.getSchema((ObjectNode) tree, definitionPath.replace("/", "."), new OpenAPIDeserializer.ParseResult().openapi31(openapi31));
+                result = (T) deserializer.getSchema(tree, definitionPath.replace("/", "."), new OpenAPIDeserializer.ParseResult().openapi31(openapi31));
             } else {
                 result = DeserializationUtils.deserialize(tree, file, expectedType, openapi31);
             }
@@ -219,7 +219,7 @@ public class ResolverCache extends io.swagger.v3.parser.ResolverCache {
         OpenAPIDeserializer.ParseResult parseResult = new OpenAPIDeserializer.ParseResult();
         T result = null;
         if (expectedType.equals(Schema.class)) {
-            result = (T) deserializer.getSchema((ObjectNode) node, definitionPath.replace("/", "."), parseResult);
+            result = (T) deserializer.getSchema(node, definitionPath.replace("/", "."), parseResult);
         } else if (expectedType.equals(RequestBody.class)) {
             result = (T) deserializer.getRequestBody((ObjectNode) node, definitionPath.replace("/", "."), parseResult);
         } else if (expectedType.equals(ApiResponse.class)) {
@@ -348,11 +348,7 @@ public class ResolverCache extends io.swagger.v3.parser.ResolverCache {
 
     private String unescapePointer(String jsonPathElement) {
         // URL decode the fragment
-        try {
-            jsonPathElement = URLDecoder.decode(jsonPathElement, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            //
-        }
+        jsonPathElement = URLDecoder.decode(jsonPathElement, StandardCharsets.UTF_8);
         // Unescape the JSON Pointer segment using the algorithm described in RFC 6901, section 4:
         // https://tools.ietf.org/html/rfc6901#section-4
         // First transform any occurrence of the sequence '~1' to '/'
