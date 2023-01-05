@@ -148,7 +148,7 @@ public class Blend extends AbstractBlend implements Runnable {
     }
 
 
-    private enum PathSecurity {
+    public enum PathSecurity {
         oauth2, disabled
     }
 
