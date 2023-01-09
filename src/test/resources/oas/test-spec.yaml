@@ -13,6 +13,30 @@ tags:
   - name: someTag
 
 paths:
+  /otherPath:
+    get:
+      operationId: otherGet
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SomePayload'
+    post:
+      operationId: otherPost
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SomePayload'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SomePayload'
   /somePath:
     get:
       description: desc

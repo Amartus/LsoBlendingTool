@@ -112,13 +112,12 @@ public class Blend extends AbstractBlend implements Runnable {
                 .strict(strict)
                 .postprocessor(new ComposedPostprocessor());
 
+        configureSecurityDefinitions(blending);
+
         if (sorted) {
             blending.postprocessor(new SortTypesByName());
         }
 
-        if (pathSecurity == PathSecurity.oauth2) {
-            blending.postprocessor(new SecureEndpointsWithOAuth2());
-        }
 
         var mapper = SerializationUtils.yamlMapper();
 
@@ -147,9 +146,17 @@ public class Blend extends AbstractBlend implements Runnable {
         }
     }
 
+    private void configureSecurityDefinitions(BlendingService blending) {
+        switch (pathSecurity) {
+            case oauth2:
+                blending.postprocessor(new SecureEndpointsWithOAuth2(SecureEndpointsWithOAuth2.DEFAULT_SCHEME_NAME,
+                        SecureEndpointsWithOAuth2.Mode.PER_OPERATION_SCOPE));
 
-    public enum PathSecurity {
-        oauth2, disabled
+            case oauth2_simple:
+                blending.postprocessor(new SecureEndpointsWithOAuth2(SecureEndpointsWithOAuth2.DEFAULT_SCHEME_NAME,
+                        SecureEndpointsWithOAuth2.Mode.SINGLE_SCOPE));
+
+        }
     }
 
     private List<String> findAllProductSpecifications(String allSchemas) {
@@ -157,6 +164,10 @@ public class Blend extends AbstractBlend implements Runnable {
                 .findProductSpecifications(Path.of(productsRootDir)).stream()
                 .map(Path::toString)
                 .collect(Collectors.toList());
+    }
+
+    public enum PathSecurity {
+        oauth2, oauth2_simple, disabled
     }
 
     private File output() {
