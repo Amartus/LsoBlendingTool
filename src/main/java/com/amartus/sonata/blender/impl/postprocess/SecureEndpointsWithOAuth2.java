@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 
 public class SecureEndpointsWithOAuth2 implements Consumer<OpenAPI> {
 
-    private static final String DEFAULT_SCHEME_NAME = "oauth2MEFLSOAPI";
+    public static final String DEFAULT_SCHEME_NAME = "oauth2MEFLSOAPI";
     private final String schemeName;
     private final Mode mode;
 
@@ -56,7 +56,7 @@ public class SecureEndpointsWithOAuth2 implements Consumer<OpenAPI> {
         modifier.execute();
     }
 
-    private enum Mode {
+    public enum Mode {
         PER_OPERATION_SCOPE,
         SINGLE_SCOPE
     }
@@ -161,8 +161,8 @@ public class SecureEndpointsWithOAuth2 implements Consumer<OpenAPI> {
                 url = url.substring(0, url.length() - 1);
             }
             return new OAuthFlow()
-                    .authorizationUrl(url + "/token")
-                    .tokenUrl(url + "/refresh")
+                    .refreshUrl(url + "/refresh")
+                    .tokenUrl(url + "/token")
                     .scopes(scopes);
         }
 
