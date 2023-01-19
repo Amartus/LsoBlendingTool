@@ -27,6 +27,7 @@ import com.amartus.sonata.blender.parser.ResolverCache;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.parser.util.DeserializationUtils;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.SpecVersion;
 import io.swagger.v3.oas.models.media.ComposedSchema;
 import io.swagger.v3.oas.models.media.ObjectSchema;
 import io.swagger.v3.oas.models.media.Schema;
@@ -78,6 +79,10 @@ public class ProductSpecReader {
     }
 
     public Map<String, Schema<?>> readSchemas() {
+        return readSchemas(SpecVersion.V30);
+    }
+
+    public Map<String, Schema<?>> readSchemas(SpecVersion version) {
         log.info("Resolving {}", this.schemaPath);
         OpenAPI api = new OpenAPI();
 
@@ -93,7 +98,7 @@ public class ProductSpecReader {
             throw new IllegalArgumentException(String.format("Cannot read schema for %s", schemaPath), e);
         }
 
-        Map<String, Schema<?>> resolved = resolve(schema);
+        Map<String, Schema<?>> resolved = resolve(schema, version);
         ComposedSchema wrapper = (ComposedSchema) resolved.remove(KEY);
         Schema extensionParent = wrapper.getAllOf().get(0);
         Schema specification = resolved.remove(toRefName(wrapper.getAllOf().get(1)));
@@ -170,16 +175,24 @@ public class ProductSpecReader {
         return schema.get$ref().replace("#/components/schemas/", "");
     }
 
-    protected Map<String, Schema<?>> resolve(Schema schema) {
+    protected Map<String, Schema<?>> resolve(Schema schema, SpecVersion version) {
         var parentFile = schemaPath.toString();
         var options = new ParseOptions();
         options.setResolve(true);
         options.setValidateExternalRefs(true);
-        var oas = new OpenAPI().schema(KEY, schema);
+
+
+        var oas = new OpenAPI(version)
+                .openapi(version == SpecVersion.V31 ? "3.1" : "3.0")
+                .schema(KEY, schema);
+
         var cache = new ResolverCache(oas, parentFile, options, new DeserializerProvider());
 
-        OpenAPIResolver r = new OpenAPIResolver(new OpenAPI().schema(KEY, schema), cache, null);
+        OpenAPIResolver r = new OpenAPIResolver(oas, cache, null);
         var res = new SwaggerParseResult().messages(new ArrayList<>());
+        if(version == SpecVersion.V31) {
+            res.setOpenapi31(true);
+        }
         r.resolve(res);
 
         if (!res.getMessages().isEmpty()) {

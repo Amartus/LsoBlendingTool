@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.PathItem;
+import io.swagger.v3.oas.models.SpecVersion;
 import io.swagger.v3.oas.models.callbacks.Callback;
 import io.swagger.v3.oas.models.examples.Example;
 import io.swagger.v3.oas.models.headers.Header;
@@ -30,6 +31,7 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -59,6 +61,7 @@ public class ResolverCache extends io.swagger.v3.parser.ResolverCache {
     private final Set<String> resolveValidationMessages;
     private final ParseOptions parseOptions;
     private final DeserializerProvider provider;
+    private final Supplier<OpenAPIDeserializer.ParseResult> resultProvider;
     protected boolean openapi31;
 
     /*
@@ -89,6 +92,12 @@ public class ResolverCache extends io.swagger.v3.parser.ResolverCache {
         this.resolveValidationMessages = resolveValidationMessages;
         this.parseOptions = parseOptions;
         this.provider = provider;
+
+        openapi31 = openApi.getSpecVersion() == SpecVersion.V31;
+
+        this.resultProvider = () -> {
+            return new OpenAPIDeserializer.ParseResult().openapi31(openapi31);
+        };
 
         if(parentFileLocation != null) {
             if(parentFileLocation.startsWith("http") || parentFileLocation.startsWith("jar")) {
@@ -216,7 +225,7 @@ public class ResolverCache extends io.swagger.v3.parser.ResolverCache {
 
     private <T> T deserializeFragment(JsonNode node, Class<T> expectedType, String file, String definitionPath) {
         OpenAPIDeserializer deserializer = provider.deserializer();
-        OpenAPIDeserializer.ParseResult parseResult = new OpenAPIDeserializer.ParseResult();
+        OpenAPIDeserializer.ParseResult parseResult = resultProvider.get();
         T result = null;
         if (expectedType.equals(Schema.class)) {
             result = (T) deserializer.getSchema(node, definitionPath.replace("/", "."), parseResult);
