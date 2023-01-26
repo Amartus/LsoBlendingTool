@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -39,11 +40,15 @@ public class IdSchemaResolver {
     private final UrnPredicate urnPredicate;
 
     public IdSchemaResolver(String functionName) {
-        this.urnPredicate = new UrnPredicate(functionName);
+        this.urnPredicate = new UrnPredicate(disc -> disc.endsWith("all") || disc.endsWith(functionName));
+    }
+
+    public IdSchemaResolver(Predicate<String> discrMatcher) {
+        this.urnPredicate = new UrnPredicate(Objects.requireNonNull(discrMatcher));
     }
 
     public List<Path> findProductSpecifications(Path rootPath) {
-        var walker = new FileWalker<>(Files::isRegularFile, p -> urnPredicate.test(p));
+        var walker = new FileWalker<>(Files::isRegularFile, urnPredicate::test);
 
         try (Stream<Pair<Path, Boolean>> allFiles = walker.walk(rootPath)) {
             return allFiles
@@ -61,14 +66,16 @@ public class IdSchemaResolver {
         private final ObjectMapper json;
         private final ObjectMapper yaml;
         private final UrnBasedNamingStrategy namingStrategy;
-        private final String functionName;
 
-        private UrnPredicate(String functionName) {
+        private final Predicate<String> discriminatorMatcher;
+
+        private UrnPredicate(Predicate<String> discriminatorMatcher) {
             this.json = SerializationUtils.jsonMapper();
             this.yaml = SerializationUtils.yamlMapper();
             this.namingStrategy = new UrnBasedNamingStrategy();
-            this.functionName = functionName;
+            this.discriminatorMatcher = discriminatorMatcher;
         }
+
 
         @Override
         public boolean test(Path path) {
@@ -80,11 +87,11 @@ public class IdSchemaResolver {
             var toInclude = namingStrategy.provideNameAndDiscriminator(null, content)
                     .map(n -> {
                         String disc = n.getDiscriminatorValue();
-                        return (disc.endsWith("all") || disc.endsWith(functionName));
+                        return discriminatorMatcher.test(disc);
                     })
                     .orElse(false);
             if (!toInclude) {
-                log.info("{} is not a valid MEF URN for {} function. skipping", path, functionName);
+                log.info("{} is has no recognized ID. skipping", path);
             }
             return toInclude;
         }
