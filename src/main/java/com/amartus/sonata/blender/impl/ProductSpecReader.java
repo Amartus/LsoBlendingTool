@@ -56,14 +56,23 @@ public class ProductSpecReader {
     private final List<ProductSpecificationNamingStrategy> namingStrategies;
     private final Charset charset = StandardCharsets.UTF_8;
     private final String fragment;
+    private final DeserializerProvider deserializerProvider;
+
+    private final ParseOptions options;
 
     public ProductSpecReader(String modelToAugment, Path schemaLocation) {
-        this(modelToAugment, schemaLocation, "");
+        this(modelToAugment, schemaLocation, "", new DeserializerProvider(), defaultOptions());
     }
 
-    public ProductSpecReader(String modelToAugment, Path schemaLocation, String fragment) {
+    public ProductSpecReader(String modelToAugment, Path schemaLocation, DeserializerProvider deserializerProvider) {
+        this(modelToAugment, schemaLocation, "", deserializerProvider, defaultOptions());
+    }
+
+    public ProductSpecReader(String modelToAugment, Path schemaLocation, String fragment, DeserializerProvider deserializerProvider, ParseOptions options) {
         this.schemaPath = Objects.requireNonNull(schemaLocation).toAbsolutePath();
         this.fragment = Objects.requireNonNull(fragment);
+        this.deserializerProvider = Objects.requireNonNull(deserializerProvider);
+        this.options = Objects.requireNonNull(options);
         if (!Files.exists(this.schemaPath)) {
             throw new IllegalArgumentException("Path " + this.schemaPath + " does not exists");
         }
@@ -75,6 +84,13 @@ public class ProductSpecReader {
                 new FragmentBasedNamingStrategy(),
                 new PathBaseNamingStrategy()
         ).collect(Collectors.toList());
+    }
+
+    public static ParseOptions defaultOptions() {
+        var options = new ParseOptions();
+        options.setResolve(true);
+        options.setValidateExternalRefs(true);
+        return options;
     }
 
     public Map<String, Schema<?>> readSchemas() {
@@ -172,11 +188,8 @@ public class ProductSpecReader {
 
     protected Map<String, Schema<?>> resolve(Schema schema) {
         var parentFile = schemaPath.toString();
-        var options = new ParseOptions();
-        options.setResolve(true);
-        options.setValidateExternalRefs(true);
         var oas = new OpenAPI().schema(KEY, schema);
-        var cache = new ResolverCache(oas, parentFile, options, new DeserializerProvider());
+        var cache = new ResolverCache(oas, parentFile, options, deserializerProvider);
 
         OpenAPIResolver r = new OpenAPIResolver(new OpenAPI().schema(KEY, schema), cache, null);
         var res = new SwaggerParseResult().messages(new ArrayList<>());

@@ -30,7 +30,7 @@ public class DeserializerProvider {
             return schema;
         }
     }
-    OpenAPIDeserializer deserializer() {
+    public OpenAPIDeserializer deserializer() {
         return new AmartusDeserializer();
     }
 }

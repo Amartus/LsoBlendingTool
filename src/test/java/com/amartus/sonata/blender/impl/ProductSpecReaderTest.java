@@ -19,6 +19,7 @@
 package com.amartus.sonata.blender.impl;
 
 import com.amartus.Utils;
+import com.amartus.sonata.blender.parser.DeserializerProvider;
 import io.swagger.v3.oas.models.media.ObjectSchema;
 import io.swagger.v3.oas.models.media.Schema;
 import org.junit.jupiter.api.Test;
@@ -35,7 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class ProductSpecReaderTest {
-
+    private final DeserializerProvider deserializerProvider = new DeserializerProvider();
     @Test
     public void testReaderForSchema() {
         var dirPath = Utils.toPath("mini-model").toAbsolutePath();
@@ -58,7 +59,7 @@ class ProductSpecReaderTest {
     @Test
     public void testReaderForSchemaOas() {
         var dirPath = Utils.toPath("mini-model");
-        var schemas = new ProductSpecReader("testToAugment", dirPath.resolve("model-oas.yaml"), "#/components/schemas/ModelOAS")
+        var schemas = new ProductSpecReader("testToAugment", dirPath.resolve("model-oas.yaml"), "#/components/schemas/ModelOAS", deserializerProvider, ProductSpecReader.defaultOptions())
                 .readSchemas();
         singleRootSchema(schemas);
         assertEquals(7, schemas.size());
@@ -67,7 +68,7 @@ class ProductSpecReaderTest {
     @Test
     public void testReadComposedModel() {
         var dirPath = Utils.toPath("ref-model");
-        var schemas = new ProductSpecReader("testToAugment", dirPath.resolve("root.yaml"), "#/components/schemas/Root")
+        var schemas = new ProductSpecReader("testToAugment", dirPath.resolve("root.yaml"), "#/components/schemas/Root", deserializerProvider, ProductSpecReader.defaultOptions())
                 .readSchemas();
         singleRootSchema(schemas);
         assertEquals(6, schemas.size());

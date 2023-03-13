@@ -21,6 +21,7 @@ package com.amartus.sonata.blender.cmd;
 import com.amartus.sonata.blender.impl.ProductSpecReader;
 import com.amartus.sonata.blender.impl.util.Pair;
 import com.amartus.sonata.blender.impl.util.PathResolver;
+import com.amartus.sonata.blender.parser.DeserializerProvider;
 import com.github.rvesse.airline.annotations.Option;
 import com.github.rvesse.airline.annotations.restrictions.Once;
 import com.github.rvesse.airline.annotations.restrictions.RequireOnlyOne;
@@ -93,7 +94,7 @@ public abstract class AbstractBlend {
 
     protected Map<String, Schema> toProductSpecifications() {
         return toSchemaPaths(blendingSchemas())
-                .flatMap(schema -> new ProductSpecReader(modelToAugment, schema.first(), schema.second()).readSchemas().entrySet().stream())
+                .flatMap(schema -> new ProductSpecReader(modelToAugment, schema.first(), schema.second(), new DeserializerProvider(), ProductSpecReader.defaultOptions()).readSchemas().entrySet().stream())
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> {
                     if (a.equals(b)) return a;
                     throw new IllegalArgumentException(String.format("Object for the same key does not match %s %s", a, b));
