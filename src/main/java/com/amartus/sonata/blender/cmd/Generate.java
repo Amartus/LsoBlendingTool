@@ -90,8 +90,8 @@ public class Generate extends AbstractBlend implements Runnable {
 
         @Override
         public List<File> generate() {
-            log.debug("Injecting {} schemas from {} product spec descriptions",
-                    schemasToInject.size(), productSpecifications.size());
+            log.debug("Injecting {} schemas from {} specification descriptions",
+                    schemasToInject.size(), blendedSchema.size());
 
             new MergeSchemasAction(modelToAugment, strict)
                     .schemasToInject(schemasToInject)

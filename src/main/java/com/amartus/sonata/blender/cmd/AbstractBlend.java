@@ -23,8 +23,8 @@ import com.amartus.sonata.blender.impl.util.Pair;
 import com.amartus.sonata.blender.impl.util.PathResolver;
 import com.amartus.sonata.blender.parser.DeserializerProvider;
 import com.github.rvesse.airline.annotations.Option;
+import com.github.rvesse.airline.annotations.restrictions.MutuallyExclusiveWith;
 import com.github.rvesse.airline.annotations.restrictions.Once;
-import com.github.rvesse.airline.annotations.restrictions.RequireOnlyOne;
 import io.swagger.v3.oas.models.media.Schema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,19 +39,12 @@ import java.util.stream.Stream;
 
 public abstract class AbstractBlend {
     private static final Logger log = LoggerFactory.getLogger(AbstractBlend.class);
-    @Option(
-            name = {"-p", "--product-spec"},
-            title = "deprecated. product specifications",
-            description = "sets of product specification you would like to integrate")
-    @RequireOnlyOne(tag = "allOrSelective")
-    @Deprecated
-    protected List<String> productSpecifications = new ArrayList<>();
 
     @Option(
             name = {"-b", "--blending-schema"},
             title = "specifications to be blend (integrate) in",
             description = "sets of specifications (e.g. specific product or service definitions) you would like to integrate")
-    @RequireOnlyOne(tag = "allOrSelective")
+    @MutuallyExclusiveWith(tag = "allOrSelective")
     protected List<String> blendedSchema = new ArrayList<>();
 
     @Option(
@@ -59,7 +52,7 @@ public abstract class AbstractBlend {
             title = "root directory for specifications to be blended",
             description = "root directory for specifications.")
     @Once
-    protected String productsRootDir = ".";
+    protected String specificationsRootDir = ".";
 
     @Option(name = {"-i", "--input-spec"}, title = "spec file",
             description = "location of the OpenAPI spec, as URL or file (required)")
@@ -89,7 +82,7 @@ public abstract class AbstractBlend {
             hidden = true,
             description = "Take all schemas from specification root directory for a given function. By convention use only URN with that function or 'all'"
     )
-    @RequireOnlyOne(tag = "allOrSelective")
+    @MutuallyExclusiveWith(tag = "allOrSelective")
     protected String allSchemas = null;
 
     protected Map<String, Schema> toProductSpecifications() {
@@ -102,10 +95,10 @@ public abstract class AbstractBlend {
     }
 
     protected Stream<Pair<Path, String>> toSchemaPaths(Stream<String> path) {
-        return new PathResolver(productsRootDir).toSchemaPaths(path);
+        return new PathResolver(specificationsRootDir).toSchemaPaths(path);
     }
     protected Stream<String> blendingSchemas() {
-        return Stream.concat(productSpecifications.stream(), blendedSchema.stream());
+        return blendedSchema.stream();
     }
 
     protected void validateProductSpecs() {

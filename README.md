@@ -115,7 +115,6 @@ SYNOPSIS
                 [ {-f | --force-override} ] [ {-i | --input-spec} <spec file> ]
                 [ {-m | --model-name} <model to be augmented> ]
                 [ {-o | --output} <Output file name> ]
-                [ {-p | --product-spec} <deprecated. product specifications>... ]
                 [ --path-security <pathSecurity> ] [ --sorted ]
                 [ --strict-mode ]
 
@@ -161,14 +160,6 @@ OPTIONS
             provided output file is 'output-spec'.modified
 
             This option may occur a maximum of 1 times
-
-
-        -p <deprecated. product specifications>, --product-spec <deprecated. product specifications>
-            sets of product specification you would like to integrate
-
-            This option is part of the group 'allOrSelective' from which only
-            one option may be specified
-
 
         --path-security <pathSecurity>
             mechanism to use to secure API paths. default disabled

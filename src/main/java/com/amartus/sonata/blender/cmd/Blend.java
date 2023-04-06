@@ -92,7 +92,6 @@ public class Blend extends AbstractBlend implements Runnable {
         } else {
             blendedSchema = blendingSchemas().collect(Collectors.toList());
         }
-        productSpecifications = List.of();
 
         validateProductSpecs();
         OpenAPI openAPI;
@@ -161,7 +160,7 @@ public class Blend extends AbstractBlend implements Runnable {
 
     private List<String> findAllProductSpecifications(String allSchemas) {
         return new IdSchemaResolver(allSchemas)
-                .findProductSpecifications(Path.of(productsRootDir)).stream()
+                .findProductSpecifications(Path.of(specificationsRootDir)).stream()
                 .map(Path::toString)
                 .collect(Collectors.toList());
     }

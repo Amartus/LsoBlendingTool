@@ -49,7 +49,7 @@ public class MergeSchemasAction {
 
     public MergeSchemasAction target(OpenAPI api) {
         this.openAPI = api;
-        validateTargetExists();
+
         return this;
 
     }
@@ -59,7 +59,7 @@ public class MergeSchemasAction {
                 schemasToInject.size());
 
         if (!schemasToInject.isEmpty()) {
-
+            validateTargetExists();
             if (!isTargetReadyForExtension()) {
                 if (strict) {
                     log.error("No discriminator defined for {} ", modelToAugment);
