@@ -32,6 +32,7 @@ import io.swagger.v3.oas.models.media.ObjectSchema;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.parser.core.models.ParseOptions;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
+import lombok.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,14 +46,24 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@SuppressWarnings({"unchecked"})
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class ProductSpecReader {
+
+    @Value
+    public static class Options {
+        String defaultParentName;
+        boolean autodiscover;
+        public static Options forName(String name) {
+            return new Options(name, false);
+        }
+    }
     public static final String DISCRIMINATOR_VALUE = "x-discriminator-value";
+    public static final String TARGET_NAME = "x-mef-target";
 
     private static final String KEY = "___to_remove";
     private static final Logger log = LoggerFactory.getLogger(ProductSpecReader.class);
     private final Path schemaPath;
-    private final String modelToAugment;
+    private final Options config;
     private final List<ProductSpecificationNamingStrategy> namingStrategies;
     private final Charset charset = StandardCharsets.UTF_8;
     private final String fragment;
@@ -61,14 +72,14 @@ public class ProductSpecReader {
     private final ParseOptions options;
 
     public ProductSpecReader(String modelToAugment, Path schemaLocation) {
-        this(modelToAugment, schemaLocation, "", new DeserializerProvider(), defaultOptions());
+        this(Options.forName(modelToAugment), schemaLocation, "", new DeserializerProvider(), defaultOptions());
     }
 
     public ProductSpecReader(String modelToAugment, Path schemaLocation, DeserializerProvider deserializerProvider) {
-        this(modelToAugment, schemaLocation, "", deserializerProvider, defaultOptions());
+        this(Options.forName(modelToAugment), schemaLocation, "", deserializerProvider, defaultOptions());
     }
 
-    public ProductSpecReader(String modelToAugment, Path schemaLocation, String fragment, DeserializerProvider deserializerProvider, ParseOptions options) {
+    public ProductSpecReader(Options config, Path schemaLocation, String fragment, DeserializerProvider deserializerProvider, ParseOptions options) {
         this.schemaPath = Objects.requireNonNull(schemaLocation).toAbsolutePath();
         this.fragment = Objects.requireNonNull(fragment);
         this.deserializerProvider = Objects.requireNonNull(deserializerProvider);
@@ -78,7 +89,7 @@ public class ProductSpecReader {
         }
 
 
-        this.modelToAugment = modelToAugment;
+        this.config = Objects.requireNonNull(config);
         this.namingStrategies = Stream.of(
                 new UrnBasedNamingStrategy(),
                 new FragmentBasedNamingStrategy(),
@@ -98,7 +109,7 @@ public class ProductSpecReader {
         OpenAPI api = new OpenAPI();
 
         var schema = new ComposedSchema()
-                .addAllOfItem(new Schema<>().$ref("#/components/schemas/" + modelToAugment))
+                .addAllOfItem(new Schema<>().$ref("#/components/schemas/" + config.defaultParentName))
                 .addAllOfItem(new Schema<>().$ref(schemaName()));
         api.schema(KEY, schema);
 
@@ -111,8 +122,8 @@ public class ProductSpecReader {
 
         Map<String, Schema<?>> resolved = resolve(schema);
         ComposedSchema wrapper = (ComposedSchema) resolved.remove(KEY);
-        Schema extensionParent = wrapper.getAllOf().get(0);
         Schema specification = resolved.remove(toRefName(wrapper.getAllOf().get(1)));
+        Schema extensionParent = defineParent(wrapper, specification);
         Map<String, Object> extensions = specification.getExtensions();
         if (extensions == null) {
             extensions = new HashMap<>();
@@ -139,6 +150,18 @@ public class ProductSpecReader {
         resolved.put(productName.getName(), target);
 
         return resolved;
+    }
+
+    private Schema defineParent(ComposedSchema schema, Schema specification) {
+        var target = schema.getAllOf().get(0);
+        if(config.autodiscover) {
+            var extensions = Optional.ofNullable(specification.getExtensions()).orElse(Map.of());
+            var path = Optional.ofNullable(extensions.get(TARGET_NAME))
+                    .map(it -> "#/components/schemas/" + it)
+                    .orElse(target.get$ref());
+            target.set$ref(path);
+        }
+        return target;
     }
 
     private String  schemaName() {

@@ -102,6 +102,12 @@ public class Merge implements Runnable {
     @Once
     private boolean sorted = false;
 
+    @Option(name = {"-discover", "--auto-discover"},
+            title = "auto-discover type target name from schema extension",
+            description = "Try to use a parent type name from x-mef-target extension in schema. If not defined the fallback is to take 'model-name'"
+    )
+    protected boolean autodiscover = false;
+
     @Override
     public void run() {
         OpenAPI openAPI = prepareOas();
@@ -162,8 +168,10 @@ public class Merge implements Runnable {
 
         var paths = resolver.toSchemaPaths(blendedSchema.stream());
 
+        var config = new ProductSpecReader.Options(modelToAugment, autodiscover);
+
         return paths
-                .flatMap(schema -> new ProductSpecReader(modelToAugment, schema.first(), schema.second(), new DeserializerProvider(), ProductSpecReader.defaultOptions()).readSchemas().entrySet().stream())
+                .flatMap(schema -> new ProductSpecReader(config, schema.first(), schema.second(), new DeserializerProvider(), ProductSpecReader.defaultOptions()).readSchemas().entrySet().stream())
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> {
                     if (a.equals(b)) return a;
                     throw new IllegalArgumentException(String.format("Object for the same key does not match %s %s", a, b));

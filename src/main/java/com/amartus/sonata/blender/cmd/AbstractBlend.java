@@ -85,9 +85,18 @@ public abstract class AbstractBlend {
     @MutuallyExclusiveWith(tag = "allOrSelective")
     protected String allSchemas = null;
 
+    @Option(name = {"-discover", "--auto-discover"},
+            title = "auto-discover type target name from schema extension",
+            description = "Try to use a parent type name from x-mef-target extension in schema. If not defined the fallback is to take 'model-name'"
+    )
+    protected boolean autodiscover = false;
+
+    @SuppressWarnings("rawtypes")
     protected Map<String, Schema> toProductSpecifications() {
+        var config = new ProductSpecReader.Options(modelToAugment, autodiscover);
+
         return toSchemaPaths(blendingSchemas())
-                .flatMap(schema -> new ProductSpecReader(modelToAugment, schema.first(), schema.second(), new DeserializerProvider(), ProductSpecReader.defaultOptions()).readSchemas().entrySet().stream())
+                .flatMap(schema -> new ProductSpecReader(config, schema.first(), schema.second(), new DeserializerProvider(), ProductSpecReader.defaultOptions()).readSchemas().entrySet().stream())
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> {
                     if (a.equals(b)) return a;
                     throw new IllegalArgumentException(String.format("Object for the same key does not match %s %s", a, b));

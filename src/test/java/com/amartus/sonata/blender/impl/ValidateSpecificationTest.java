@@ -6,6 +6,7 @@ import com.amartus.sonata.blender.impl.util.SerializationUtils;
 import com.github.rvesse.airline.Cli;
 import com.github.rvesse.airline.builder.CliBuilder;
 import com.github.rvesse.airline.help.Help;
+import com.google.common.collect.Streams;
 import com.networknt.schema.ValidationMessage;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,10 +30,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ValidateSpecificationTest {
     private static final Logger log = LoggerFactory.getLogger(ValidateSpecificationTest.class);
-    private static Path source;
+    private static final Path source;
 
     static {
         try {
+            //noinspection DataFlowIssue
             source = Paths.get(ValidateSpecificationTest.class.getResource("/oas/test-spec.yaml").toURI());
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
@@ -71,6 +73,7 @@ public class ValidateSpecificationTest {
         var generated = SerializationUtils.yamlMapper().readTree(target.toFile());
         var messages = SpecValidator.fromClasspath().validate(generated);
 
+        //noinspection ResultOfMethodCallIgnored
         target.toFile().delete();
 
         log.info("Generated OAS\n\n {} \n\n",
@@ -96,6 +99,22 @@ public class ValidateSpecificationTest {
                 )
                 .satisfies(s ->
                         assertThatJson(s).node("allOf[0].$ref").isEqualTo("#/components/schemas/Placeholder")
+                );
+    }
+
+    @Test
+    public void respectTarget() throws Exception {
+        Stream<String> args = Streams.concat(args(target), Stream.of("--auto-discover"));
+        var builder = builder();
+
+        builder.build().parse(args.toArray(String[]::new)).run();
+
+        var generated = SerializationUtils.yamlMapper().readTree(target.toFile());
+        assertThatJson(generated)
+                .inPath("$.components.schemas.ToInject")
+                .isObject()
+                .satisfies(s ->
+                        assertThatJson(s).node("allOf[0].$ref").isEqualTo("#/components/schemas/TargetParentName")
                 );
     }
 

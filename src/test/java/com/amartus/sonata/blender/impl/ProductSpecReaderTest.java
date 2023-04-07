@@ -59,7 +59,7 @@ class ProductSpecReaderTest {
     @Test
     public void testReaderForSchemaOas() {
         var dirPath = Utils.toPath("mini-model");
-        var schemas = new ProductSpecReader("testToAugment", dirPath.resolve("model-oas.yaml"), "#/components/schemas/ModelOAS", deserializerProvider, ProductSpecReader.defaultOptions())
+        var schemas = new ProductSpecReader(ProductSpecReader.Options.forName("testToAugment"), dirPath.resolve("model-oas.yaml"), "#/components/schemas/ModelOAS", deserializerProvider, ProductSpecReader.defaultOptions())
                 .readSchemas();
         singleRootSchema(schemas);
         assertEquals(7, schemas.size());
@@ -68,7 +68,7 @@ class ProductSpecReaderTest {
     @Test
     public void testReadComposedModel() {
         var dirPath = Utils.toPath("ref-model");
-        var schemas = new ProductSpecReader("testToAugment", dirPath.resolve("root.yaml"), "#/components/schemas/Root", deserializerProvider, ProductSpecReader.defaultOptions())
+        var schemas = new ProductSpecReader(ProductSpecReader.Options.forName("testToAugment"), dirPath.resolve("root.yaml"), "#/components/schemas/Root", deserializerProvider, ProductSpecReader.defaultOptions())
                 .readSchemas();
         singleRootSchema(schemas);
         assertEquals(6, schemas.size());
@@ -82,9 +82,7 @@ class ProductSpecReaderTest {
                 .readSchemas();
         singleRootSchema(schemas);
         var root = (ObjectSchema) schemas.get(name).getAllOf().get(1);
-        root.getProperties().forEach((k,v) -> {
-            assertNotNull(v.getDescription());
-        });
+        root.getProperties().forEach((k,v) -> assertNotNull(v.getDescription()));
     }
 
     private void singleRootSchema(Map<String, Schema<?>> allSchemas) {

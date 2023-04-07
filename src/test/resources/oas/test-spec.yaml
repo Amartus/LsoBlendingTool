@@ -148,6 +148,20 @@ components:
         - y
         - z
       type: string
+
+    TargetParentName:
+      description: >-
+        Extension placeholder2
+      discriminator:
+        propertyName: '@type'
+      properties:
+        '@type':
+          description: >-
+            The name of the type, defined in the JSON schema specified  above,
+          type: string
+      required:
+        - '@type'
+      type: object
     Placeholder:
       description: >-
         Extenision placeholder
