@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -44,7 +45,10 @@ public class ComposedPostprocessor implements Consumer<OpenAPI> {
             new SingleEnumToDiscriminatorValue(),
             new ConvertOneOfToAllOffInheritance(),
             new UpdateDiscriminatorMapping(),
-            new ConstrainDiscriminatorValueWithEnum()
+            new ConstrainDiscriminatorValueWithEnum(),
+            new RemoveSchemaExtensions(Set.of(
+                    "x-try-renaming-on"
+            ))
     );
     @Override
     public void accept(OpenAPI openAPI) {

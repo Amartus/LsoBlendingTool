@@ -56,17 +56,9 @@ public class RenameTypesPostprocessor implements Consumer<OpenAPI> {
             log.warn("Name substitution already defined in the model. Skipping.");
             return;
         }
-        schemas.values().forEach(s -> Optional.ofNullable(s.getExtensions()).ifPresent(e -> e.remove(extensionName)));
+
         renameSchemas(openAPI);
         renameReferences(openAPI);
-        cleanupExtensions(openAPI);
-    }
-
-    private void cleanupExtensions(OpenAPI openAPI) {
-        var schemas = new OasWrapper(openAPI).schemas().values();
-        schemas.forEach(s -> {
-            Optional.ofNullable(s.getExtensions()).ifPresent(e -> e.remove(extensionName));
-        });
     }
 
     private void renameSchemas(OpenAPI oas) {
