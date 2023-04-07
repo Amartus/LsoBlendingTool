@@ -111,6 +111,7 @@ SYNOPSIS
         sonata-blending-tool-cli blend
                 [ {-b | --blending-schema} <specifications to be blend (integrate) in>... ]
                 [ {-d | --spec-root-dir} <root directory for specifications to be blended> ]
+                [ {-discover | --auto-discover} ]
                 [ {-e | -encoding} <files encoding> ]
                 [ {-f | --force-override} ] [ {-i | --input-spec} <spec file> ]
                 [ {-m | --model-name} <model to be augmented> ]
@@ -127,14 +128,16 @@ OPTIONS
             This option is part of the group 'allOrSelective' from which only
             one option may be specified
 
-
         -d <root directory for specifications to be blended>, --spec-root-dir
         <root directory for specifications to be blended>
             root directory for specifications.
 
             This option may occur a maximum of 1 times
 
-
+        -discover, --auto-discover
+            Try to use a parent type name from x-mef-target extension in
+            schema. If not defined the fallback is to take 'model-name'
+            
         -e <files encoding>, -encoding <files encoding>
             encoding used to read API and product definitions. By default
             system encoding is used
@@ -210,6 +213,14 @@ Assumption is that this command is run from root of the Legato SDK directory and
     -b carrierEthernetSubscriberUni.yaml
 ```
 
+### Additional features
+
+
+#### Auto-discover mode
+If a schema to blend defines `x-mef-target` extension it can be used as a target class name for given type.
+To enable this feature please use `-discover` flag. In auto-discover mode if `x-mef-target` is not defined for the schema
+the `model-name` will be used as a fallback.
+
 ## Tool `merge` command synopsis
 
 Merge command generates an OAS 3 definition that is a minimal OAS file including `components/schemas` only
@@ -220,6 +231,7 @@ SYNOPSIS
         sonata-blending-tool-cli merge
                 [ {-b | --blending-schema} <specifications to be blend (integrate) in>... ]
                 [ {-d | --spec-root-dir} <root directory for specifications> ]
+                [ {-discover | --auto-discover} ]
                 [ {-f | --force-override} ]
                 [ {-m | --model-name} <model to be augmented> ]
                 {-o | --output} <Output file name> [ --sorted ]
@@ -239,7 +251,10 @@ OPTIONS
 
             This option may occur a maximum of 1 times
 
-
+        -discover, --auto-discover
+            Try to use a parent type name from x-mef-target extension in
+            schema. If not defined the fallback is to take 'model-name'
+            
         -f, --force-override
 
 
