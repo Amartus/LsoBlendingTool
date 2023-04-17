@@ -162,9 +162,7 @@ components:
       required:
         - '@type'
       type: object
-    Placeholder:
-      description: >-
-        Extenision placeholder
+    Extensible:
       discriminator:
         propertyName: '@type'
       properties:
@@ -175,6 +173,15 @@ components:
       required:
         - '@type'
       type: object
+    Placeholder:
+      description: >-
+        Extenision placeholder
+      allOf:
+        - $ref: '#/components/schemas/Extensible'
+        - type: object
+          properties:
+            attr1:
+              type: string
     SomePayload:
       description: >-
         Structure to define GET without id response. A list of productOrder

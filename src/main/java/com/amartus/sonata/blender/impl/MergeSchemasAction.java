@@ -19,6 +19,8 @@
 package com.amartus.sonata.blender.impl;
 
 import com.amartus.sonata.blender.cmd.AbstractBlend;
+import com.amartus.sonata.blender.impl.util.OasUtils;
+import com.amartus.sonata.blender.impl.util.OasWrapper;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.media.Discriminator;
 import io.swagger.v3.oas.models.media.Schema;
@@ -26,8 +28,11 @@ import io.swagger.v3.oas.models.media.StringSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+
 
 public class MergeSchemasAction {
     protected static final String DISCRIMINATOR_NAME = "@type";
@@ -36,6 +41,7 @@ public class MergeSchemasAction {
     private final boolean strict;
     private Map<String, Schema> schemasToInject = Map.of();
     private OpenAPI openAPI;
+    private OasWrapper wrapper;
 
     public MergeSchemasAction(String modelToAugment, boolean strict) {
         this.modelToAugment = modelToAugment;
@@ -49,6 +55,7 @@ public class MergeSchemasAction {
 
     public MergeSchemasAction target(OpenAPI api) {
         this.openAPI = api;
+        this.wrapper = new OasWrapper(api);
 
         return this;
 
@@ -109,7 +116,28 @@ public class MergeSchemasAction {
 
     private boolean isTargetReadyForExtension() {
         Schema schema = this.openAPI.getComponents().getSchemas().get(modelToAugment);
-        Discriminator discriminator = schema.getDiscriminator();
+
+        Discriminator discriminator = discriminator(schema);
         return discriminator != null;
+    }
+
+    private Discriminator discriminator(Schema schema) {
+        Schema toEvaluate = schema;
+        if(schema.get$ref() != null) {
+            var name =  OasUtils.toSchemaName(schema.get$ref());
+            toEvaluate = wrapper.schema(name)
+                    .orElseThrow(() -> new IllegalStateException("cannot resolve " + schema.get$ref()));
+        }
+
+        Discriminator discriminator = toEvaluate.getDiscriminator();
+        if(discriminator != null) {
+            return discriminator;
+        }
+
+        return Optional.ofNullable(toEvaluate.getAllOf())
+                .stream().flatMap(Collection<Schema>::stream)
+                .map(this::discriminator)
+                .filter(Objects::nonNull)
+                .findFirst().orElse(null);
     }
 }

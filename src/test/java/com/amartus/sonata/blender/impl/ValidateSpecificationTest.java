@@ -103,6 +103,22 @@ public class ValidateSpecificationTest {
     }
 
     @Test
+    public void strictModeSupportsInheritance() throws IOException {
+        Stream<String> args = Stream.concat(args(target), Stream.of("--strict-mode"));
+        var builder = builder();
+
+        builder.build().parse(args.toArray(String[]::new)).run();
+
+        var generated = SerializationUtils.yamlMapper().readTree(target.toFile());
+        assertThatJson(generated)
+                .inPath("$.components.schemas.ToInject")
+                .isObject()
+                .satisfies(s ->
+                        assertThatJson(s).node("allOf[0].$ref").isEqualTo("#/components/schemas/Placeholder")
+                );
+    }
+
+    @Test
     public void respectTarget() throws Exception {
         Stream<String> args = Streams.concat(args(target), Stream.of("--auto-discover"));
         var builder = builder();
