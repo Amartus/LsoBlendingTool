@@ -46,6 +46,7 @@ public class ComposedPostprocessor implements Consumer<OpenAPI> {
             new ConvertOneOfToAllOffInheritance(),
             new UpdateDiscriminatorMapping(),
             new ConstrainDiscriminatorValueWithEnum(),
+            new RemoveDefaultParameterValues(),
             new RemoveSchemaExtensions(Set.of(
                     "x-try-renaming-on"
             ))

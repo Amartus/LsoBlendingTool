@@ -25,7 +25,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
+import static org.assertj.core.api.Assertions.contentOf;
 import static org.assertj.core.api.Assertions.entry;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ValidateSpecificationTest {
@@ -116,6 +118,15 @@ public class ValidateSpecificationTest {
                 .satisfies(s ->
                         assertThatJson(s).node("allOf[0].$ref").isEqualTo("#/components/schemas/Placeholder")
                 );
+    }
+
+    @Test
+    public void doesNotHaveDefaultValuesForParameters() throws IOException {
+        Stream<String> args = args(target);
+        var builder = builder();
+        builder.build().parse(args.toArray(String[]::new)).run();
+
+        assertThat(contentOf(target.toFile())).doesNotContain("exploded", "style");
     }
 
     @Test

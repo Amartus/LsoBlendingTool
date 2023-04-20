@@ -28,7 +28,7 @@
     <version>1.10.1-SNAPSHOT</version>
     <properties>
         <openapi.generator.version>6.2.0</openapi.generator.version>
-        <jackson.version>2.14.0</jackson.version>
+        <jackson.version>2.14.2</jackson.version>
     </properties>
     <dependencies>
         <!-- https://mvnrepository.com/artifact/org.openapitools/openapi-generator -->
@@ -61,7 +61,7 @@
         <dependency>
             <groupId>io.swagger.parser.v3</groupId>
             <artifactId>swagger-parser-v3</artifactId>
-            <version>2.1.8</version>
+            <version>2.1.12</version>
         </dependency>
         <dependency>
             <groupId>com.networknt</groupId>
@@ -100,7 +100,7 @@
         <dependency>
             <groupId>net.javacrumbs.json-unit</groupId>
             <artifactId>json-unit-assertj</artifactId>
-            <version>2.36.0</version>
+            <version>2.37.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
