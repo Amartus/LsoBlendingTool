@@ -20,7 +20,6 @@ jobs:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
           draft: true
-          title: "Release $GITHUB_REF_NAME"
           files: |
             LICENSE
             target/blender-all-in.jar

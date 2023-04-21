@@ -1,7 +1,9 @@
 name: Publish package to GitHub Packages
 on:
-  release:
-    types: [created]
+  workflow_run:
+    workflows: [Java CI with Maven]
+    types:
+      - completed
 jobs:
   publish:
     runs-on: ubuntu-latest
