@@ -112,7 +112,7 @@ public class Merge implements Runnable {
     public void run() {
         OpenAPI openAPI = prepareOas();
 
-        new MergeSchemasAction(modelToAugment, false)
+        new MergeSchemasAction(modelToAugment, MergeSchemasAction.Mode.FIX)
                 .schemasToInject(toProductSpecifications())
                 .target(openAPI)
                 .execute();

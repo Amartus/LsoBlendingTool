@@ -93,7 +93,7 @@ public class Generate extends AbstractBlend implements Runnable {
             log.debug("Injecting {} schemas from {} specification descriptions",
                     schemasToInject.size(), blendedSchema.size());
 
-            new MergeSchemasAction(modelToAugment, strict)
+            new MergeSchemasAction(modelToAugment, strict ? MergeSchemasAction.Mode.STRICT : MergeSchemasAction.Mode.FIX)
                     .schemasToInject(schemasToInject)
                     .target(this.openAPI)
                     .execute();

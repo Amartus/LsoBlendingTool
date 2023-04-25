@@ -19,6 +19,7 @@
 package com.amartus.sonata.blender.cmd;
 
 import com.amartus.sonata.blender.impl.BlendingService;
+import com.amartus.sonata.blender.impl.MergeSchemasAction;
 import com.amartus.sonata.blender.impl.SpecValidator;
 import com.amartus.sonata.blender.impl.postprocess.ComposedPostprocessor;
 import com.amartus.sonata.blender.impl.postprocess.SecureEndpointsWithOAuth2;
@@ -108,7 +109,7 @@ public class Blend extends AbstractBlend implements Runnable {
 
         var blending = new BlendingService(openAPI, schemasToInject)
                 .modelToAugment(modelToAugment)
-                .strict(strict)
+                .mode(strict ? MergeSchemasAction.Mode.STRICT : MergeSchemasAction.Mode.FIX)
                 .postprocessor(new ComposedPostprocessor());
 
         configureSecurityDefinitions(blending);

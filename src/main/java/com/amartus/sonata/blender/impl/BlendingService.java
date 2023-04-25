@@ -18,6 +18,7 @@ public class BlendingService {
     private final List<Consumer<OpenAPI>> postprocessors = new ArrayList<>();
     private boolean strict;
     private String modelToAugment;
+    private MergeSchemasAction.Mode mode;
 
     /**
      * Input OAS spec that is to be augmented
@@ -35,8 +36,8 @@ public class BlendingService {
         return this;
     }
 
-    public BlendingService strict(boolean isStrict) {
-        this.strict = isStrict;
+    public BlendingService mode(MergeSchemasAction.Mode mode) {
+        this.mode = mode;
         return this;
     }
 
@@ -50,7 +51,7 @@ public class BlendingService {
             throw new IllegalStateException("Name of the model to augment is not set");
         }
 
-        new MergeSchemasAction(modelToAugment, strict)
+        new MergeSchemasAction(modelToAugment, mode)
                 .schemasToInject(schemasToInject)
                 .target(oas)
                 .execute();
