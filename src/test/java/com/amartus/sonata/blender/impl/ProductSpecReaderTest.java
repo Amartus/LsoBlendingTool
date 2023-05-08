@@ -74,7 +74,7 @@ class ProductSpecReaderTest {
                 .readSchemas();
         singleRootSchema(schemas);
         validateDiscriminatedModel(schemas.get("ModelOASWithDiscriminator"), "urn:mef:lso:spec:cantata-sonata:model-with-discriminator:v0.3.0:all");
-        assertEquals(7, schemas.size());
+        assertEquals(5, schemas.size());
     }
 
     @Test
