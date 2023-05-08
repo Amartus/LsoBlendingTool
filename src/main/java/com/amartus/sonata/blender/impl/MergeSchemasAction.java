@@ -21,7 +21,6 @@ package com.amartus.sonata.blender.impl;
 import com.amartus.sonata.blender.cmd.AbstractBlend;
 import com.amartus.sonata.blender.impl.util.OasUtils;
 import com.amartus.sonata.blender.impl.util.OasWrapper;
-import io.swagger.models.properties.Property;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.media.Discriminator;
 import io.swagger.v3.oas.models.media.Schema;
@@ -29,11 +28,9 @@ import io.swagger.v3.oas.models.media.StringSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 
 public class MergeSchemasAction {
@@ -50,7 +47,7 @@ public class MergeSchemasAction {
     private OasWrapper wrapper;
 
     private interface Handler {
-        void handle(Discriminator disc, Schema prop);
+        void handle(Discriminator disc, Schema prop, Schema subject);
     }
 
     public MergeSchemasAction(String modelToAugment, Mode mode) {
@@ -62,7 +59,7 @@ public class MergeSchemasAction {
     private Handler handler(Mode mode, String model) {
         switch (mode) {
             case FIX: return this::fixTargetSchema;
-            case RELAXED: return  (d, p) -> {
+            case RELAXED: return  (d, p, t) -> {
                 var issues = 0;
                 if(d == null) {
                     issues += 1;
@@ -77,10 +74,10 @@ public class MergeSchemasAction {
                     throw new IllegalStateException("Discriminator property not found");
                 }
 
-                fixTargetSchema(d, p);
+                fixTargetSchema(d, p, t);
 
             };
-            default: return (s, p) -> {
+            default: return (s, p, _n) -> {
                 if(s == null || p == null) {
                     log.error("No discriminator defined for {} ", modelToAugment);
                     throw new IllegalStateException("Discriminator not found");
@@ -103,45 +100,60 @@ public class MergeSchemasAction {
     }
 
     public void execute() {
+        if (schemasToInject.isEmpty()) return;
+
         log.debug("Injecting {} schemas",
                 schemasToInject.size());
+        Set<String> targets = findTargets();
 
-        if (!schemasToInject.isEmpty()) {
-            validateTargetExists();
-            Schema schema = this.openAPI.getComponents().getSchemas().get(modelToAugment);
-            handler.handle(discriminator(schema), prop(schema));
-        }
+        targets.forEach(targetName -> {
+            validateTargetExists(targetName);
+            Schema schema = this.openAPI.getComponents().getSchemas().get(targetName);
+            log.info("Evaluating target {}", targetName);
+            handler.handle(discriminator(schema), prop(schema), schema);
+        });
+
         this.openAPI.getComponents().getSchemas().putAll(schemasToInject);
     }
 
-    private void validateTargetExists() {
-        if (getTargetSchema().isEmpty()) {
+    private Set<String> findTargets() {
+        Set<String> targets = schemasToInject.values().stream()
+                .map(s -> Optional.ofNullable(s.getExtensions())
+                        .map(em -> (String) em.get(ProductSpecReader.TARGET_NAME)).orElse(null))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        targets.add(modelToAugment);
+        return targets;
+    }
+
+    private void validateTargetExists(String targetName) {
+        if (getTargetSchema(targetName).isEmpty()) {
             log.error("Schema with name '{}' is not present in the API", modelToAugment);
             throw new IllegalStateException(String.format("Schema '%s' not found in the specification", modelToAugment));
         }
     }
 
     @SuppressWarnings("OptionalGetWithoutIsPresent")
-    private void fixTargetSchema(Discriminator discriminator, Schema property) {
-        var schema = getTargetSchema().get();
+    private void fixTargetSchema(Discriminator discriminator, Schema property, Schema targetSchema) {
+
         if(property == null) {
             log.info("Adding field {} to the {}", DISCRIMINATOR_NAME, modelToAugment);
-            schema.addProperty(DISCRIMINATOR_NAME,
+            targetSchema.addProperty(DISCRIMINATOR_NAME,
                     new StringSchema().description("Used as a discriminator to support polymorphic definitions"));
         }
         if(discriminator == null) {
             log.info("Adding discriminator to the {}", modelToAugment);
-            schema.setDiscriminator(new Discriminator().propertyName(DISCRIMINATOR_NAME));
+            targetSchema.setDiscriminator(new Discriminator().propertyName(DISCRIMINATOR_NAME));
         }
     }
 
     @SuppressWarnings("rawtypes")
-    private Optional<Schema> getTargetSchema() {
+    private Optional<Schema> getTargetSchema(String modelName) {
         var allSchemas = Optional.ofNullable(this.openAPI.getComponents())
                 .flatMap(c -> Optional.ofNullable(c.getSchemas()));
 
         return allSchemas
-                .map(all -> Optional.ofNullable(all.get(modelToAugment)))
+                .map(all -> Optional.ofNullable(all.get(modelName)))
                 .orElseThrow(() -> new IllegalStateException("API schemas are not resolved"));
     }
 
@@ -165,7 +177,7 @@ public class MergeSchemasAction {
     }
 
     private Discriminator discriminator(Schema schema) {
-        return recursiveSearch(schema, Schema::getDiscriminator);
+        return schema.getDiscriminator();
     }
 
     private Schema prop(Schema schema) {

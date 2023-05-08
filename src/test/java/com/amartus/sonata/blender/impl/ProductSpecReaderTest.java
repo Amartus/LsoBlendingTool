@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.amartus.sonata.blender.impl.ProductSpecReader.DISCRIMINATOR_VALUE;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -53,6 +54,7 @@ class ProductSpecReaderTest {
         var schemas = new ProductSpecReader("testToAugment", dirPath.resolve("model-js.json"))
                 .readSchemas();
         singleRootSchema(schemas);
+        validateDiscriminatedModel(schemas.get("model-js.json"), "model-js.json");
         assertEquals(7, schemas.size());
     }
 
@@ -62,6 +64,16 @@ class ProductSpecReaderTest {
         var schemas = new ProductSpecReader(ProductSpecReader.Options.forName("testToAugment"), dirPath.resolve("model-oas.yaml"), "#/components/schemas/ModelOAS", deserializerProvider, ProductSpecReader.defaultOptions())
                 .readSchemas();
         singleRootSchema(schemas);
+        validateDiscriminatedModel(schemas.get("ModelOAS"), "ModelOAS");
+        assertEquals(7, schemas.size());
+    }
+    @Test
+    public void testReaderForSchemaOasWithXDiscriminator() {
+        var dirPath = Utils.toPath("mini-model");
+        var schemas = new ProductSpecReader(ProductSpecReader.Options.forName("testToAugment"), dirPath.resolve("model-oas.yaml"), "#/components/schemas/ModelOASWithDiscriminator", deserializerProvider, ProductSpecReader.defaultOptions())
+                .readSchemas();
+        singleRootSchema(schemas);
+        validateDiscriminatedModel(schemas.get("ModelOASWithDiscriminator"), "urn:mef:lso:spec:cantata-sonata:model-with-discriminator:v0.3.0:all");
         assertEquals(7, schemas.size());
     }
 
@@ -98,6 +110,14 @@ class ProductSpecReaderTest {
         return allSchemas.entrySet().stream()
                 .filter(e -> isMarked.test(e.getValue()))
                 .map(Map.Entry::getKey);
+    }
+
+    private void validateDiscriminatedModel(Schema<?> modelOAS, String discriminator) {
+        assertThat(modelOAS)
+                .isNotNull()
+                .extracting(Schema::getExtensions)
+                .satisfies(m -> assertThat(m).containsEntry("x-discriminator-value", discriminator));
+
     }
 
 }

@@ -43,7 +43,7 @@ public class UpdateDiscriminatorMapping extends AbstractPostProcessor {
                     .findFirst();
 
             parentCandidate.ifPresent(parent -> {
-                var discValue = discrininatorValue(schema).orElse(name);
+                var discValue = discriminatorValue(schema).orElse(name);
                 log.debug("Trying {} as parent discriminator update for {}", parent.get$ref(), name);
                 updateMapping(name, discValue, parent.get$ref());
             });
@@ -60,13 +60,13 @@ public class UpdateDiscriminatorMapping extends AbstractPostProcessor {
                 .flatMap(s -> Optional.ofNullable(s.getDiscriminator()))
                 .filter(d -> d.getPropertyName() != null);
 
-        disc.ifPresent(d -> {
+        disc.ifPresentOrElse(d -> {
             log.info("Updating {} discriminator mapping for {} with value '{}'", parentRef, schemaName, discriminator);
             d.mapping(discriminator, OasUtils.toSchemRef(schemaName));
-        });
+        }, () -> log.warn("Discriminator definition for '{}' not present at {}", schemaName, discriminator));
     }
 
-    private Optional<String> discrininatorValue(Schema schema) {
+    private Optional<String> discriminatorValue(Schema schema) {
         return Optional.ofNullable(schema.getExtensions())
                 .flatMap(e -> Optional.ofNullable((String) e.get("x-discriminator-value")));
     }

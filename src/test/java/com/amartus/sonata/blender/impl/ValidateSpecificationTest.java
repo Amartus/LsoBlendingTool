@@ -32,20 +32,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ValidateSpecificationTest {
     private static final Logger log = LoggerFactory.getLogger(ValidateSpecificationTest.class);
-    private static final Path source;
+    private static final Path source = classPath("/oas/test-spec.yaml");
+    private Path target;
 
-    static {
+    private static Path classPath(String path) {
         try {
-            //noinspection DataFlowIssue
-            source = Paths.get(ValidateSpecificationTest.class.getResource("/oas/test-spec.yaml").toURI());
+            return Paths.get(ValidateSpecificationTest.class.getResource(path).toURI());
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private Path target;
-
-    private static Stream<String> args(Path target) {
+    private static Stream<String> commonArgs(Path target) {
         var api = source.toAbsolutePath();
         var search = api.getParent();
         return Stream.of(
@@ -54,12 +52,38 @@ public class ValidateSpecificationTest {
                 api.toString(),
                 "-d",
                 search.toString(),
-                "--model-name",
-                "Placeholder",
-                "--all-schemas",
-                target.getParent().toAbsolutePath().toString(),
                 "-o",
                 target.toAbsolutePath().toString()
+        );
+    }
+
+    private static Stream<String> args(Path target) {
+        return args("Placeholder", target);
+    }
+
+    private static Stream<String> args(String model, Path target) {
+        return Stream.concat(
+                commonArgs(target),
+                Stream.of(
+                        "--model-name",
+                        model,
+                        "--all-schemas",
+                        "all"
+                )
+        );
+    }
+
+
+
+    private static Stream<String> args(Path target, String file) {
+        return Stream.concat(
+                commonArgs(target),
+                Stream.of(
+                        "--model-name",
+                        "Placeholder",
+                        "-b",
+                        file
+                )
         );
     }
 
@@ -105,8 +129,31 @@ public class ValidateSpecificationTest {
     }
 
     @Test
+    public void checkFragmentSchema() throws Exception {
+        var fileFragment = classPath("/mini-model/model-oas.yaml") + "#/components/schemas/ModelOASWithDiscriminator";
+        Stream<String> args = args(target, fileFragment);
+
+        var builder = builder();
+
+        builder.build().parse(args.toArray(String[]::new)).run();
+
+        var generated = SerializationUtils.yamlMapper().readTree(target.toFile());
+        assertThatJson(generated)
+                .inPath("$.components.schemas.ModelOASWithDiscriminator")
+                .isObject()
+                .satisfies(s ->
+                        assertThatJson(s).node("allOf[0].$ref").isEqualTo("#/components/schemas/Placeholder")
+                );
+        assertThatJson(generated)
+                .inPath("$.components.schemas.Placeholder.discriminator.mapping")
+                .isObject()
+                .satisfies(e ->
+                        assertThat(e).containsEntry("urn:mef:lso:spec:cantata-sonata:model-with-discriminator:v0.3.0:all", "#/components/schemas/ModelOASWithDiscriminator"));
+    }
+
+    @Test
     public void strictModeSupportsInheritance() throws IOException {
-        Stream<String> args = Stream.concat(args(target), Stream.of("--strict-mode"));
+        Stream<String> args = Stream.concat(args("TargetParentName", target), Stream.of("--strict-mode"));
         var builder = builder();
 
         builder.build().parse(args.toArray(String[]::new)).run();
@@ -116,12 +163,12 @@ public class ValidateSpecificationTest {
                 .inPath("$.components.schemas.ToInject")
                 .isObject()
                 .satisfies(s ->
-                        assertThatJson(s).node("allOf[0].$ref").isEqualTo("#/components/schemas/Placeholder")
+                        assertThatJson(s).node("allOf[0].$ref").isEqualTo("#/components/schemas/TargetParentName")
                 );
     }
 
     @Test
-    public void doesNotHaveDefaultValuesForParameters() throws IOException {
+    public void doesNotHaveDefaultValuesForParameters() {
         Stream<String> args = args(target);
         var builder = builder();
         builder.build().parse(args.toArray(String[]::new)).run();
@@ -143,6 +190,11 @@ public class ValidateSpecificationTest {
                 .satisfies(s ->
                         assertThatJson(s).node("allOf[0].$ref").isEqualTo("#/components/schemas/TargetParentName")
                 );
+        assertThatJson(generated)
+                .inPath("$.components.schemas.TargetParentName.discriminator.mapping")
+                .isObject()
+                .satisfies(e ->
+                        assertThat(e).containsEntry("urn:mef:lso:spec:cantata-sonata:to-inject:v0.3.0:all", "#/components/schemas/ToInject"));
     }
 
     @Test

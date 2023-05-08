@@ -10,6 +10,25 @@ info:
 paths: { }
 components:
   schemas:
+    ModelOASWithDiscriminator:
+      x-discriminator-value: urn:mef:lso:spec:cantata-sonata:model-with-discriminator:v0.3.0:all
+      properties:
+        prop1:
+          type: integer
+          maximum: 1000
+          description: Property1 description
+        aggregate:
+          allOf:
+            - $ref: './common-js.yaml#/definitions/ElementA'
+            - $ref: './common-js.yaml#/definitions/ElementB'
+        oneOfEnum:
+          oneOf:
+            - $ref: './common-js.json#/definitions/EnumA'
+            - $ref: './common-js.json#/definitions/EnumB'
+      required:
+        - aggregate
+        - oneOfEnum
+        - prop1
     ModelOAS:
       x-mef-aaa: dsadassa
       properties:

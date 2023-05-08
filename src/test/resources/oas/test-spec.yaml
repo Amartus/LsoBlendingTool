@@ -175,7 +175,7 @@ components:
       type: object
     Placeholder:
       description: >-
-        Extenision placeholder
+        Extension placeholder
       allOf:
         - $ref: '#/components/schemas/Extensible'
         - type: object
