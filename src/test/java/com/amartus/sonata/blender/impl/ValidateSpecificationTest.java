@@ -265,7 +265,7 @@ public class ValidateSpecificationTest {
                 .map(ValidationMessage::getMessage)
                 .collect(Collectors.joining("\n"));
         if (!msgs.isEmpty()) {
-            log.warn("Validaiton issues:\n{}\n", msg);
+            log.warn("Validation issues:\n{}\n", msg);
         }
     }
 

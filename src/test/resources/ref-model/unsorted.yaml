@@ -1,0 +1,38 @@
+openapi: "3.0.2"
+info:
+  title: API Title
+  version: "1.0"
+servers:
+  - url: https://api.server.test/v1
+paths:
+  /example:
+    get:
+      responses:
+        "200":
+          description: "example"
+          content:
+            default:
+              schema:
+                $ref: "#/components/schemas/B"
+components:
+  schemas:
+    B:
+      type: object
+      properties:
+        d:
+          $ref: "external.json"
+        a:
+          type: string
+        b:
+          $ref: "#/components/schemas/A"
+        c:
+          $ref: "#/components/schemas/A"
+        e:
+          $ref: "./specific/specific.json"
+    A:
+      type: object
+      properties:
+        y:
+          type: string
+        x:
+          type: string
