@@ -118,11 +118,21 @@ public class MergeSchemasAction {
 
     private Set<String> findTargets() {
         Set<String> targets = schemasToInject.values().stream()
-                .map(s -> Optional.ofNullable(s.getExtensions())
-                        .map(em -> (String) em.get(ProductSpecReader.TARGET_NAME)).orElse(null))
-                .filter(Objects::nonNull)
+                .flatMap(s -> OasUtils.extensionByName(ProductSpecReader.TARGET_NAME, s).stream())
                 .collect(Collectors.toSet());
-        targets.add(modelToAugment);
+        var noRootSchemaWithDefinedTarget = schemasToInject.values().stream()
+                .filter(s -> OasUtils.extensionByName(ProductSpecReader.DISCRIMINATOR_VALUE, s).isPresent())
+                .anyMatch(s -> OasUtils.extensionByName(ProductSpecReader.TARGET_NAME, s).isEmpty());
+
+        if(noRootSchemaWithDefinedTarget) {
+            targets = new HashSet<>(targets);
+            targets.add(modelToAugment);
+        }
+
+        if(targets.isEmpty() && ! schemasToInject.isEmpty()) {
+            throw new IllegalStateException("No targets identified for schemas to inject");
+        }
+
         return targets;
     }
 

@@ -18,6 +18,8 @@
 
 package com.amartus.sonata.blender.impl.util;
 
+import org.apache.commons.lang3.tuple.Pair;
+
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.stream.Stream;
@@ -37,7 +39,7 @@ public class PathResolver {
         final var rootPath = Path.of(root).toAbsolutePath();
         return paths
                 .map(this::pathWithFragment)
-                .map(p -> Pair.of(toPath(p.first(), rootPath), p.second()));
+                .map(p -> Pair.of(toPath(p.getLeft(), rootPath), p.getRight()));
     }
 
     private Path toPath(String path, Path root) {

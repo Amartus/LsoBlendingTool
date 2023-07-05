@@ -83,6 +83,6 @@ public class RemoveDefaultParameterValues implements Consumer<OpenAPI> {
      }
 
     private boolean defaultExplode(Parameter.StyleEnum defStyle, Boolean explode) {
-        return (defStyle == Parameter.StyleEnum.FORM) == explode;
+        return Boolean.valueOf(defStyle == Parameter.StyleEnum.FORM) == explode;
     }
 }

@@ -18,10 +18,10 @@
 
 package com.amartus.sonata.blender.impl.postprocess;
 
-import com.amartus.sonata.blender.impl.util.Pair;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.security.*;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -92,10 +92,10 @@ public class SecureEndpointsWithOAuth2 implements Consumer<OpenAPI> {
         @Override
         protected void addRequirements(List<Pair<Operation, String>> operations) {
             operations.forEach(e -> {
-                var operation = e.first();
+                var operation = e.getLeft();
                 operation.addSecurityItem(
                         new SecurityRequirement()
-                                .addList(schemeName, e.second())
+                                .addList(schemeName, e.getRight())
                 );
             });
         }
@@ -105,7 +105,7 @@ public class SecureEndpointsWithOAuth2 implements Consumer<OpenAPI> {
             var scopes = new Scopes();
 
             operations.stream()
-                    .map(Pair::second)
+                    .map(Pair::getRight)
                     .forEach(name -> scopes.addString(name, String.format("Scope for operation %s", name)));
             return scopes;
         }

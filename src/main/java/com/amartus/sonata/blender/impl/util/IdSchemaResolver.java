@@ -21,6 +21,7 @@ package com.amartus.sonata.blender.impl.util;
 import com.amartus.sonata.blender.impl.specifications.UrnBasedNamingStrategy;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,8 +53,8 @@ public class IdSchemaResolver {
 
         try (Stream<Pair<Path, Boolean>> allFiles = walker.walk(rootPath)) {
             return allFiles
-                    .filter(Pair::second)
-                    .map(Pair::first)
+                    .filter(Pair::getRight)
+                    .map(Pair::getLeft)
                     .map(Path::toAbsolutePath)
                     .collect(Collectors.toList());
         } catch (IOException e) {

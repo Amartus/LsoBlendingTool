@@ -103,6 +103,11 @@ public interface OasUtils {
         return 0;
     }
 
+
+    static Optional<String> extensionByName(String name, Schema schema) {
+        return Optional.ofNullable(schema.getExtensions())
+                .flatMap(ex -> Optional.ofNullable((String) ex.get(name)));
+    }
     static Stream<Schema> allSchemas(ComposedSchema cs) {
         return Stream.of(
                 cs.getAllOf(),

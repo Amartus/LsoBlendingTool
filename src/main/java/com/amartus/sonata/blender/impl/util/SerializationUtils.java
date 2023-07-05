@@ -24,8 +24,10 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import io.swagger.v3.core.jackson.mixin.SchemaMixin;
 import io.swagger.v3.core.util.Json31;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.media.Schema;
 import org.openapitools.codegen.serializer.OpenAPISerializer;
 
 public abstract class SerializationUtils {
@@ -43,6 +45,7 @@ public abstract class SerializationUtils {
         module.addSerializer(OpenAPI.class, new OpenAPISerializer());
         mapper.registerModule(module)
                 .addMixIn(Object.class, IgnorePropertyMixin.class)
+                .addMixIn(Schema.class, SchemaMixin.class)
                 .setSerializationInclusion(JsonInclude.Include.NON_EMPTY)
                 .configure(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, true);
         return mapper;

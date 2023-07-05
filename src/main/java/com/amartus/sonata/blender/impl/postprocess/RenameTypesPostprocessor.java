@@ -2,7 +2,6 @@ package com.amartus.sonata.blender.impl.postprocess;
 
 import com.amartus.sonata.blender.impl.util.OasUtils;
 import com.amartus.sonata.blender.impl.util.OasWrapper;
-import com.amartus.sonata.blender.impl.util.Pair;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.media.ArraySchema;
@@ -12,6 +11,7 @@ import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.parameters.RequestBody;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.responses.ApiResponses;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,7 +64,7 @@ public class RenameTypesPostprocessor implements Consumer<OpenAPI> {
     private void renameSchemas(OpenAPI oas) {
         var schemas = new OasWrapper(oas).schemas().entrySet().stream()
                 .map(e -> Pair.of(substitutions.getOrDefault(e.getKey(), e.getKey()), e.getValue()))
-                .collect(Collectors.toMap(Pair::first, Pair::second));
+                .collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
         oas.getComponents().setSchemas(schemas);
     }
 

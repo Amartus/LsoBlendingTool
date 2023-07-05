@@ -102,8 +102,10 @@ class MergeSchemasActionTest {
     }
 
     private Map<String, Schema> schemas() {
+        var schema = new ObjectSchema();
+        schema.addExtension(ProductSpecReader.DISCRIMINATOR_VALUE, "some-discriminator");
         return Map.of(
-                "foo", new ObjectSchema()
+                "foo", schema
         );
     }
 }
