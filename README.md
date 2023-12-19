@@ -104,8 +104,8 @@ Blend command generates an OAS 3 definition of combined API and product specific
 
 ```shell script
 NAME
-        sonata-blending-tool-cli blend - Blend Product Specifications into
-        OpenAPI.
+        sonata-blending-tool-cli blend - Blend Product / Service Specifications
+        into OpenAPI.
 
 SYNOPSIS
         sonata-blending-tool-cli blend
@@ -115,9 +115,10 @@ SYNOPSIS
                 [ {-e | -encoding} <files encoding> ]
                 [ {-f | --force-override} ] [ {-i | --input-spec} <spec file> ]
                 [ {-m | --model-name} <model to be augmented> ]
+                [ --no-resolve-external ]
                 [ {-o | --output} <Output file name> ]
                 [ --path-security <pathSecurity> ] [ --sorted ]
-                [ --strict-mode ]
+                [ --strict-mode ] [ --validate ]
 
 OPTIONS
         -b <specifications to be blend (integrate) in>, --blending-schema
@@ -137,7 +138,7 @@ OPTIONS
         -discover, --auto-discover
             Try to use a parent type name from x-mef-target extension in
             schema. If not defined the fallback is to take 'model-name'
-            
+
         -e <files encoding>, -encoding <files encoding>
             encoding used to read API and product definitions. By default
             system encoding is used
@@ -158,6 +159,13 @@ OPTIONS
             Model which will be hosting product specific extensions (e.g.
             MEFProductConfiguration)
 
+        --no-resolve-external
+            Do not resolve external references. By default external references
+            are resolved.
+
+            This option may occur a maximum of 1 times
+
+
         -o <Output file name>, --output <Output file name>
             Output file name. Throws exception if file exists. If it is not
             provided output file is 'output-spec'.modified
@@ -169,6 +177,7 @@ OPTIONS
 
             This options value is restricted to the following set of values:
                 oauth2
+                oauth2_simple
                 disabled
 
         --sorted
@@ -182,12 +191,12 @@ OPTIONS
             discriminator definition).
             If strict-mode is `false` tool will add a discriminator on the fly
             if possible.
-            
+
         --validate
             Validate consistency of OAS definition with its 3.0.x json schema
             definition
 
-            This option may occur a maximum of 1 times  
+            This option may occur a maximum of 1 times
 ```
 
 

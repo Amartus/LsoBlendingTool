@@ -92,6 +92,11 @@ public class ConvertOneOfToAllOffInheritance implements Consumer<OpenAPI> {
             return;
         }
 
+        if(schemasToResolve.isEmpty()) {
+            log.warn("Cannot find schemas to resolve {}", toResolve.getValue());
+            return;
+        }
+
         Map<String, Schema> props = schemasToResolve.iterator().next().getValue().getProperties();
 
         var parent = new ObjectSchema()

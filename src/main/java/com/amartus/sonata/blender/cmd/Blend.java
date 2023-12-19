@@ -71,6 +71,14 @@ public class Blend extends AbstractBlend implements Runnable {
     private boolean validateOutput = false;
 
     @Option(
+            name = {"--no-resolve-external"},
+            title = "do not resolve external references",
+            description = "Do not resolve external references. By default external references are resolved."
+    )
+    @Once
+    private boolean dontResolveExternalRefs = false;
+
+    @Option(
             name = {"-o", "--output"},
             title = "Output file name",
             description = "Output file name. Throws exception if file exists. If it is not provided output file is 'output-spec'.modified"
@@ -97,7 +105,7 @@ public class Blend extends AbstractBlend implements Runnable {
         validateProductSpecs();
         OpenAPI openAPI;
         try {
-            openAPI = OasUtils.readOas(this.spec);
+            openAPI = OasUtils.readOas(this.spec, ! dontResolveExternalRefs);
         } catch (Exception e) {
             return;
         }

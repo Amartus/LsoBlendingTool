@@ -53,10 +53,14 @@ public interface OasUtils {
     }
 
     static OpenAPI readOas(String path) {
+        return readOas(path, true);
+    }
+
+    static OpenAPI readOas(String path, boolean resolve) {
         log.debug("Reading {}", path);
         var options = new ParseOptions();
 //        options.setResolveFully(true);
-        options.setResolve(true);
+        options.setResolve(resolve);
         try {
             SwaggerParseResult result = new OpenAPIParser().readLocation(path, List.of(), options);
             var api = result.getOpenAPI();
