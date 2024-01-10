@@ -12,7 +12,7 @@ mvn clean package
 
 # Project run (CLI)
 
-Project requires Java runtime in version 11 or greater.
+Project requires Java runtime in version 17 or greater.
 
 ```shell script
 java -jar blender-all-in.jar <command> [args]
