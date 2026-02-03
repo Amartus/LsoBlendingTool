@@ -86,9 +86,9 @@ public class SingleEnumToDiscriminatorValue extends AbstractPostProcessor {
     private Function<Schema<?>, Optional<String>> getSingletonEnumDiscriminator(String propertyName) {
         return sc -> Optional.ofNullable(sc.getProperties())
                 .flatMap(p -> Optional.ofNullable((Schema<?>) p.get(propertyName)))
-                .flatMap(x -> Optional.of(x.getEnum()))
+                .flatMap(x -> Optional.ofNullable(x.getEnum()))
                 .flatMap(lE -> {
-                    if (lE.size() == 1) {
+                    if (lE.size() == 1 && lE.get(0) != null) {
                         return Optional.of((String) lE.get(0));
                     }
                     return Optional.empty();

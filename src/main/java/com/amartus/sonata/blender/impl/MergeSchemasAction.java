@@ -106,6 +106,13 @@ public class MergeSchemasAction {
                 schemasToInject.size());
         Set<String> targets = findTargets();
 
+    if (log.isDebugEnabled()) {
+        log.debug("MergeSchemasAction diagnostics: modelToAugment='{}', discovered targets={}, injection keys={}",
+            modelToAugment,
+            targets,
+            schemasToInject.keySet());
+    }
+
         targets.forEach(targetName -> {
             validateTargetExists(targetName);
             Schema schema = this.openAPI.getComponents().getSchemas().get(targetName);
@@ -138,8 +145,18 @@ public class MergeSchemasAction {
 
     private void validateTargetExists(String targetName) {
         if (getTargetSchema(targetName).isEmpty()) {
-            log.error("Schema with name '{}' is not present in the API", modelToAugment);
-            throw new IllegalStateException(String.format("Schema '%s' not found in the specification", modelToAugment));
+            try {
+                var keys = Optional.ofNullable(openAPI)
+                        .flatMap(o -> Optional.ofNullable(o.getComponents()))
+                        .flatMap(c -> Optional.ofNullable(c.getSchemas()))
+                        .map(m -> String.join(", ", m.keySet()))
+                        .orElse("<none>");
+                log.error("Target schema '{}' (requested for modelToAugment='{}') is not present. Available schemas: {}",
+                        targetName, modelToAugment, keys);
+            } catch (Exception ex) {
+                log.error("Failed while listing available schemas while looking for '{}'", targetName, ex);
+            }
+            throw new IllegalStateException(String.format("Schema '%s' not found in the specification", targetName));
         }
     }
 
